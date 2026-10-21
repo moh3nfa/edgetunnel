@@ -1,5 +1,5 @@
 const Version = '2026-10-08 22:23:27';
-let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false, 允许的用户凭证 = null;
+let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false, 允许的用户凭证 = null, 当前请求用量上下文 = null;
 let SOCKS5白名单 = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
 const Pages静态页面 = 'https://edt-pages.github.io', EDT_版本号 = Number(String(Version).replace(/\D+/g, ''));
 /////////////////////////////////////////////////////// 面板界面本地化（ایران / فارسی / English） ///////////////////////////////////////////////
@@ -94,11 +94,25 @@ const 面板本地化脚本 = String.raw`(function () {
 
 		// ---------- اطلاعات شبکه ----------
 		['当前网络信息', 'اطلاعات شبکه‌ی فعلی', 'Current network info'],
-		['国内测试', 'تست داخلی (چین)', 'Domestic test'],
-		['国外测试', 'تست خارجی', 'International test'],
-		['墙外测试', 'تست سایت‌های فیلترشده', 'Blocked-site test'],
+		['国内测试', 'تست ایران', 'Iran test'],
+		['国外测试', 'تست بین‌المللی', 'International test'],
+		['墙外测试', 'تست تلگرام / فیلتر', 'Telegram / filtered test'],
+
+		['CN-Test', 'IR-Test', 'IR-Test'],
+		['!CN-Test', 'TG-Test', 'TG-Test'],
+		['漏网之鱼', 'سایت‌های باز', 'Open sites'],
+		['您访问没有被封的国外站点所使用的IP', 'IP برای سایت‌های خارجیِ فیلترنشده', 'IP for unfiltered international sites'],
+		['您访问墙外站点所使用的IP', 'IP برای تلگرام و سایت‌های فیلترشده', 'IP for Telegram and filtered sites'],
+		['字节抖音', 'آپارات', 'Aparat'],
+		['腾讯微信', 'بله', 'Bale'],
+		['阿里淘宝', 'دیجی‌کالا', 'Digikala'],
+		['Bilibili', 'تلگرام', 'Telegram'],
+		['是由您梯子的', 'توسط قوانین مسیریابی فیلترشکن شما', 'is decided by your VPN routing rules'],
+		['分流规则', 'قوانین مسیریابی', 'routing rules'],
+		['决定的', 'تعیین می‌شود', 'decides it'],
+
 		['漏网之鱼', 'سایت‌های فیلترنشده', 'Unblocked sites'],
-		['您访问国内站点所使用的IP', 'IP‌ای که برای دسترسی به سایت‌های داخلی چین استفاده می‌شود', 'The IP used when you visit domestic (China) sites'],
+		['您访问国内站点所使用的IP', 'IP خروجی برای سایت‌های داخل ایران', 'Exit IP for domestic Iran sites'],
 		['您访问没有被封的国外站点所使用的IP', 'IP‌ای که برای دسترسی به سایت‌های خارجیِ فیلترنشده استفاده می‌شود', 'The IP used when you visit foreign sites that are not blocked'],
 		['您访问CFCDN站点所使用的落地IP', 'IP خروجی برای سایت‌های پشت CDN کلودفلر', 'The exit IP used for sites behind Cloudflare CDN'],
 		['您访问墙外站点所使用的IP', 'IP‌ای که برای دسترسی به سایت‌های فیلترشده استفاده می‌شود', 'The IP used when you visit blocked sites'],
@@ -183,7 +197,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['自动获取（使用节点的伪装域名解析 EchConfig）', 'دریافت خودکار (EchConfig با دامنه‌ی پوششی نود تحلیل می‌شود)', 'Automatic (resolve EchConfig with the node\u2019s disguise domain)'],
 		['阿里 DoH', 'DoH علی‌بابا (Alidns)', 'Alibaba DoH'],
 		['腾讯国密 DoH', 'DoH تنسنت (SM2)', 'Tencent SM2 DoH'],
-		['国内DNS需搭配设置ECH解析域名', 'برای DNS داخل چین باید دامنه‌ی تحلیل ECH هم تنظیم شود', 'domestic DNS must be paired with an ECH resolution domain'],
+		['国内DNS需搭配设置ECH解析域名', 'برای DNS داخلی باید دامنه‌ی تحلیل ECH هم تنظیم شود', 'domestic DNS must be paired with an ECH resolution domain'],
 		['是否可用需自行验证', 'قابل‌استفاده بودن را خودتان بررسی کنید', 'verify availability yourself'],
 		['小白推荐选这个', 'برای مبتدی‌ها پیشنهاد می‌شود', 'recommended for beginners'],
 		['Cloudflare ECH域名', 'دامنه‌ی ECH کلودفلر', 'Cloudflare ECH domain'],
@@ -1046,6 +1060,23 @@ const 面板本地化脚本 = String.raw`(function () {
 				}
 				b('کپی اشتراک', function () { navigator.clipboard.writeText(u.sub || '').then(function () { msg('لینک اشتراک کپی شد', true); }, function () { msg('کپی ناموفق'); }); }, true);
 				b('کپی UUID', function () { navigator.clipboard.writeText(u.uuid).then(function () { msg('UUID کپی شد', true); }); }, true);
+				var meta = document.createElement('div');
+				meta.style.cssText = 'margin-top:8px;font-size:12px;color:#8aa3b0;display:grid;gap:2px';
+				meta.innerHTML = '<div>مصرف: <b style="color:#5eead4">' + (u.bytesTotalHuman || '0 B') + '</b> · اتصالات: <b style="color:#5eead4">' + (u.connects || 0) + '</b></div>'
+					+ '<div>آخرین اتصال: ' + (u.lastConnect ? new Date(u.lastConnect).toLocaleString('fa-IR') : '—') + (u.lastIp ? ' · IP ' + u.lastIp : '') + (u.lastProto ? ' · ' + u.lastProto : '') + '</div>';
+				div.appendChild(meta);
+				if (u.logs && u.logs.length) {
+					var logBox = document.createElement('details');
+					logBox.style.marginTop = '6px';
+					logBox.innerHTML = '<summary style="cursor:pointer;color:#5eead4">لاگ اتصال (' + u.logs.length + ')</summary>';
+					var ul = document.createElement('div');
+					ul.style.cssText = 'margin-top:6px;max-height:140px;overflow:auto;font:11px/1.45 ui-monospace,monospace;direction:ltr;text-align:left;opacity:.9';
+					ul.textContent = u.logs.slice(0, 30).map(function (l) {
+						return (l.ts || '').replace('T', ' ').replace('Z', '') + ' | ' + (l.event || '') + ' | ' + (l.proto || '') + ' | ' + (l.ip || '') + ' | ↑' + (l.bytesIn || 0) + ' ↓' + (l.bytesOut || 0);
+					}).join('\n');
+					logBox.appendChild(ul);
+					div.appendChild(logBox);
+				}
 				if (!u.primary) {
 					b(u.enabled ? 'غیرفعال' : 'فعال‌سازی', function () {
 						api({ action: 'update', uuid: u.uuid, enabled: !u.enabled }).then(loadUsers);
@@ -1055,6 +1086,11 @@ const 面板本地化脚本 = String.raw`(function () {
 						api({ action: 'delete', uuid: u.uuid }).then(loadUsers);
 					}, true);
 				}
+				b('صفر کردن مصرف', function () {
+					if (!confirm('آمار مصرف این کاربر صفر شود؟')) return;
+					fetch('/admin/usage.json', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'reset', uuid: u.uuid }) })
+						.then(function () { loadUsers(); });
+				}, true);
 				return div;
 			}
 			function api(body) {
@@ -1131,7 +1167,42 @@ const 面板本地化脚本 = String.raw`(function () {
 		} catch (e) { }
 	}
 
-	function ready() { walk(document.documentElement); scrubBlockedLinks(document); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); mountWarpToggle(); }
+
+	function iranizeNetworkTests() {
+		try {
+			// Remap China IP-check endpoints → Iran/Telegram-friendly
+			if (!window.__edtFetchPatched) {
+				window.__edtFetchPatched = 1;
+				var rawFetch = window.fetch.bind(window);
+				window.fetch = function (input, init) {
+					try {
+						var url = typeof input === 'string' ? input : (input && input.url) || '';
+						url = url
+							.replace(/https:\/\/api\.cloudflare-cn\.com\/cdn-cgi\/trace/ig, 'https://www.cloudflare.com/cdn-cgi/trace')
+							.replace(/https:\/\/www\.cf-ns\.(com|net|tech)\/cdn-cgi\/trace/ig, 'https://www.cloudflare.com/cdn-cgi/trace')
+							.replace(/https:\/\/r\.inews\.qq\.com\/api\/ip2city[^"']*/ig, 'https://1.1.1.1/cdn-cgi/trace')
+							.replace(/https:\/\/help\.x\.com\/cdn-cgi\/trace/ig, 'https://www.cloudflare.com/cdn-cgi/trace');
+						if (typeof input === 'string') input = url;
+						else if (input && typeof Request !== 'undefined' && input instanceof Request) input = new Request(url, input);
+					} catch (e) { }
+					return rawFetch(input, init);
+				};
+			}
+			// Relabel cards after i18n
+			var map = {
+				'CN-Test': 'IR-Test',
+				'!CN-Test': 'TG-Test',
+				'漏网之鱼': 'سایت‌های باز'
+			};
+			document.querySelectorAll('.title-subtitle, .network-tip, .title-main').forEach(function (el) {
+				var t = el.textContent || '';
+				Object.keys(map).forEach(function (k) { if (t.indexOf(k) >= 0) el.textContent = t.split(k).join(map[k]); });
+			});
+		} catch (e) { }
+	}
+
+	function ready() { walk(document.documentElement); scrubBlockedLinks(document); iranizeNetworkTests(); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); mountWarpToggle(); }
+
 
 
 
@@ -1208,6 +1279,7 @@ export default {
 		};
 		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || request.headers.get('Fly-Client-IP') || request.headers.get('X-Appengine-Remote-Addr') || request.headers.get('X-Cluster-Client-IP') || '未知IP';
 		允许的用户凭证 = await 加载允许的用户凭证(env, userID);
+		当前请求用量上下文 = { env, ip: 访问IP, executionCtx: ctx };
 		const [本机标识头, 本机标识键] = 获取本机标识(userID);
 		if (缓存SOCKS5白名单 === null) {
 			if (env.GO2SOCKS5) SOCKS5白名单 = [...new Set(SOCKS5白名单.concat(await 整理成数组(env.GO2SOCKS5)))];
@@ -1229,11 +1301,13 @@ export default {
 		} else if (管理员密码 && upgradeHeader === 'websocket') {// WebSocket代理
 			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
 			if (WARP模式) { 反代上下文.WARP = true; 反代上下文.强制反代 = true; }
+			反代上下文._usage = 当前请求用量上下文;
 			log(`[WebSocket] 命中请求: ${url.pathname}${url.search}`);
 			return await 处理WS请求(request, userID, url, 反代上下文);
 		} else if (管理员密码 && !访问路径.startsWith('admin/') && 访问路径 !== 'login' && request.method === 'POST') {// gRPC/叉HTTP代理
 			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
 			if (WARP模式) { 反代上下文.WARP = true; 反代上下文.强制反代 = true; }
+			反代上下文._usage = 当前请求用量上下文;
 			const 命中叉HTTP特征 = !!request.headers.get(本机标识头) || !!url.searchParams.get(本机标识键);
 			if (!命中叉HTTP特征 && contentType.startsWith('application/grpc')) {
 				log(`[gRPC] 命中请求: ${url.pathname}${url.search}`);
@@ -1295,6 +1369,21 @@ export default {
 							return new Response(JSON.stringify({ ok: true, ...data }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 						}
 						return new Response(JSON.stringify({ ok: false, error: 'method' }), { status: 405, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+					} else if (访问路径 === 'admin/usage.json' || 区分大小写访问路径 === 'admin/usage.json') {
+						if (request.method === 'POST') {
+							let body = {};
+							try { body = await request.json(); } catch (_) {}
+							if (body.action === 'reset') {
+								const id = body.uuid ? String(body.uuid).toLowerCase() : null;
+								const table = await 读取用量表(env);
+								if (id) delete table.users[id];
+								else table.users = {};
+								await 保存用量表(env, table);
+								return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+							}
+						}
+						const table = await 读取用量表(env);
+						return new Response(JSON.stringify({ ok: true, ...table }, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					} else if (访问路径 === 'admin/log.json') {// 读取日志内容
 						const 读取日志内容 = await env.KV.get('log.json') || '[]';
 						return new Response(读取日志内容, { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -1504,6 +1593,7 @@ export default {
 						config_JSON = await 读取config_JSON(env, host, 订阅用户UUID, UA);
 						if (作为优选订阅生成器) ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_Best_SUB', config_JSON, false));
 						else ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_SUB', config_JSON));
+						if (用户客户端请求订阅) ctx.waitUntil(记录用户活动(env, 订阅用户UUID, { event: 'sub', ip: 访问IP, proto: 'sub', name: 允许的用户凭证?.meta?.[String(订阅用户UUID).toLowerCase()]?.name }));
 						const ua = UA.toLowerCase();
 						const responseHeaders = {
 							"content-type": "text/plain; charset=utf-8",
@@ -2367,7 +2457,12 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 							if (判断是否是木马) {
 								const 解析结果 = 解析木马请求(首包bytes, yourUUID);
 								if (解析结果?.hasError) throw new Error(解析结果.message || 'Invalid trojan request');
-								const { port, hostname, rawClientData, isUDP } = 解析结果;
+								const { port, hostname, rawClientData, isUDP, matchedUUID } = 解析结果;
+								if (matchedUUID && !remoteConnWrapper.usageLogged) {
+									remoteConnWrapper.usageLogged = true;
+									remoteConnWrapper.usageUUID = matchedUUID;
+									调度用量刷新(matchedUUID, { event: 'connect', proto: 'trojan-grpc', bytesIn: 首包bytes.byteLength });
+								}
 								log(`[gRPC] 木马首包: ${hostname}:${port} | UDP: ${isUDP ? '是' : '否'}`);
 								if (isSpeedTestSite(hostname) && 反代上下文.代理类型 === null) {
 									grpcBridge.send(构造本地204响应());
@@ -2386,7 +2481,12 @@ async function 处理gRPC请求(request, yourUUID, 反代上下文 = {}) {
 								判断是否是木马 = false;
 								const 解析结果 = 解析魏烈思请求(首包bytes, yourUUID);
 								if (解析结果?.hasError) throw new Error(解析结果.message || 'Invalid 魏烈思 request');
-								const { port, hostname, version, isUDP, rawClientData } = 解析结果;
+								const { port, hostname, version, isUDP, rawClientData, matchedUUID } = 解析结果;
+								if (matchedUUID && !remoteConnWrapper.usageLogged) {
+									remoteConnWrapper.usageLogged = true;
+									remoteConnWrapper.usageUUID = matchedUUID;
+									调度用量刷新(matchedUUID, { event: 'connect', proto: 'vless-grpc', bytesIn: 首包bytes.byteLength });
+								}
 								log(`[gRPC] 魏烈思首包: ${hostname}:${port} | UDP: ${isUDP ? '是' : '否'}`);
 								const respHeader = new Uint8Array([version, 0]);
 								if (isSpeedTestSite(hostname) && 反代上下文.代理类型 === null) {
@@ -2856,7 +2956,12 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 		if (判断协议类型 === '木马') {
 			const 解析结果 = 解析木马请求(chunk, yourUUID);
 			if (解析结果?.hasError) throw new Error(解析结果.message || 'Invalid trojan request');
-			const { port, hostname, rawClientData, isUDP } = 解析结果;
+			const { port, hostname, rawClientData, isUDP, matchedUUID } = 解析结果;
+			if (matchedUUID && !remoteConnWrapper.usageLogged) {
+				remoteConnWrapper.usageLogged = true;
+				remoteConnWrapper.usageUUID = matchedUUID;
+				调度用量刷新(matchedUUID, { event: 'connect', proto: 'trojan-ws', bytesIn: (当前块字节 || 数据转Uint8Array(chunk)).byteLength });
+			}
 			if (isSpeedTestSite(hostname) && 反代上下文.代理类型 === null) {
 				await 启用WS本地测速模式(serverSock, null, rawClientData);
 				return;
@@ -2876,7 +2981,12 @@ async function 处理WS请求(request, yourUUID, url, 反代上下文 = {}) {
 			const bytes = 当前块字节;
 			const 解析结果 = 解析魏烈思请求(bytes, yourUUID);
 			if (解析结果?.hasError) throw new Error(解析结果.message || 'Invalid 魏烈思 request');
-			const { port, hostname, version, isUDP, rawClientData } = 解析结果;
+			const { port, hostname, version, isUDP, rawClientData, matchedUUID } = 解析结果;
+			if (matchedUUID && !remoteConnWrapper.usageLogged) {
+				remoteConnWrapper.usageLogged = true;
+				remoteConnWrapper.usageUUID = matchedUUID;
+				调度用量刷新(matchedUUID, { event: 'connect', proto: 'vless-ws', bytesIn: bytes.byteLength });
+			}
 			const respHeader = new Uint8Array([version, 0]);
 			if (isSpeedTestSite(hostname) && 反代上下文.代理类型 === null) {
 				await 启用WS本地测速模式(serverSock, respHeader, rawClientData);
@@ -3054,14 +3164,14 @@ function 解析木马请求(buffer, passwordPlainText) {
 	if (data.byteLength < 58) return { hasError: true, message: "invalid data" };
 	let crLfIndex = 56;
 	if (data[crLfIndex] !== 0x0d || data[crLfIndex + 1] !== 0x0a) return { hasError: true, message: "invalid header format" };
-	let passwordOk = false;
+	let passwordOk = false, matchedUUID = null;
 	for (const pwd of passwords) {
 		const sha224Password = sha224(pwd);
 		let match = true;
 		for (let i = 0; i < crLfIndex; i++) {
 			if (data[i] !== sha224Password.charCodeAt(i)) { match = false; break; }
 		}
-		if (match) { passwordOk = true; break; }
+		if (match) { passwordOk = true; matchedUUID = String(pwd).toLowerCase(); break; }
 	}
 	if (!passwordOk) return { hasError: true, message: "invalid password" };
 
@@ -3117,7 +3227,8 @@ function 解析木马请求(buffer, passwordPlainText) {
 		port: portRemote,
 		hostname: address,
 		isUDP,
-		rawClientData: data.subarray(portIndex + 4)
+		rawClientData: data.subarray(portIndex + 4),
+		matchedUUID
 	};
 }
 
@@ -3153,12 +3264,15 @@ function 获取UUID字节(uuid) {
 }
 
 function UUID字节匹配(data, offset, uuid) {
+	return !!UUID字节匹配找到(data, offset, uuid);
+}
+function UUID字节匹配找到(data, offset, uuid) {
 	const candidates = Array.isArray(uuid)
 		? uuid
 		: (允许的用户凭证 && 允许的用户凭证.uuids && 允许的用户凭证.uuids.length
 			? 允许的用户凭证.uuids
 			: [uuid]);
-	if (data.byteLength < offset + 16) return false;
+	if (data.byteLength < offset + 16) return null;
 	for (const u of candidates) {
 		const expected = 获取UUID字节(u);
 		if (!expected) continue;
@@ -3166,9 +3280,9 @@ function UUID字节匹配(data, offset, uuid) {
 		for (let i = 0; i < 16; i++) {
 			if (data[offset + i] !== expected[i]) { ok = false; break; }
 		}
-		if (ok) return true;
+		if (ok) return String(u).toLowerCase();
 	}
-	return false;
+	return null;
 }
 
 function 解析魏烈思请求(chunk, token) {
@@ -3176,7 +3290,8 @@ function 解析魏烈思请求(chunk, token) {
 	const length = data.byteLength;
 	if (length < 24) return { hasError: true, message: 'Invalid data' };
 	const version = data[0];
-	if (!UUID字节匹配(data, 1, token)) return { hasError: true, message: 'Invalid uuid' };
+	const matchedUUID = UUID字节匹配找到(data, 1, token);
+	if (!matchedUUID) return { hasError: true, message: 'Invalid uuid' };
 
 	const optLen = data[17];
 	const cmdIndex = 18 + optLen;
@@ -3218,7 +3333,7 @@ function 解析魏烈思请求(chunk, token) {
 	}
 	if (!hostname) return { hasError: true, message: `Invalid address: ${addressType}` };
 	const rawIndex = addrValIdx + addrLen;
-	return { hasError: false, addressType, port, hostname, isUDP, rawClientData: data.subarray(rawIndex), version };
+	return { hasError: false, addressType, port, hostname, isUDP, rawClientData: data.subarray(rawIndex), version, matchedUUID };
 }
 
 const SS支持加密配置 = {
@@ -3443,9 +3558,16 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 
 	async function 写入首包(remoteSock, data) {
 		if (有效数据长度(data) <= 0) return;
+		const bytes = 数据转Uint8Array(data);
+		remoteConnWrapper.bytesIn = (remoteConnWrapper.bytesIn || 0) + bytes.byteLength;
 		const writer = remoteSock.writable.getWriter();
-		try { await writer.write(数据转Uint8Array(data)) }
+		try { await writer.write(bytes) }
 		finally { try { writer.releaseLock() } catch (e) { } }
+		if (remoteConnWrapper.usageUUID && remoteConnWrapper.bytesIn > 0 && (!(remoteConnWrapper._usageFlushAt) || remoteConnWrapper.bytesIn - (remoteConnWrapper._usageFlushAt || 0) > 256 * 1024)) {
+			const delta = remoteConnWrapper.bytesIn - (remoteConnWrapper._usageFlushAt || 0);
+			remoteConnWrapper._usageFlushAt = remoteConnWrapper.bytesIn;
+			调度用量刷新(remoteConnWrapper.usageUUID, { event: 'traffic', proto: 'tcp', bytesIn: delta });
+		}
 	}
 
 	async function 并发打开候选连接(候选列表) {
@@ -6898,13 +7020,102 @@ async function 根据TOKEN查找用户UUID(env, host, token, primaryUUID) {
 	return null;
 }
 
+
+const 用量KEY = 'usage.json';
+const 用量日志上限 = 80;
+
+async function 读取用量表(env) {
+	try {
+		const raw = await env.KV.get(用量KEY);
+		if (!raw) return { users: {} };
+		const data = JSON.parse(raw);
+		return data && typeof data === 'object' ? { users: data.users || data || {} } : { users: {} };
+	} catch { return { users: {} }; }
+}
+
+async function 保存用量表(env, table) {
+	await env.KV.put(用量KEY, JSON.stringify(table, null, 2));
+}
+
+function 调度用量刷新(uuid, patch = {}) {
+	const c = 当前请求用量上下文;
+	if (!c?.env || !uuid) return;
+	const job = 记录用户活动(c.env, uuid, { ip: c.ip, ...patch });
+	try { c.executionCtx?.waitUntil?.(job); } catch (_) { }
+	return job;
+}
+
+async function 记录用户活动(env, uuid, patch = {}) {
+	if (!env?.KV?.put || !uuid) return;
+	try {
+		const id = String(uuid).toLowerCase();
+		const table = await 读取用量表(env);
+		const cur = table.users[id] || {
+			uuid: id,
+			name: (允许的用户凭证?.meta?.[id]?.name) || id.slice(0, 8),
+			connects: 0,
+			bytesIn: 0,
+			bytesOut: 0,
+			lastConnect: null,
+			lastIp: null,
+			lastProto: null,
+			logs: [],
+		};
+		if (patch.name) cur.name = patch.name;
+		if (patch.event === 'connect' || patch.event === 'sub') cur.connects = (cur.connects || 0) + 1;
+		if (patch.bytesIn) cur.bytesIn = (cur.bytesIn || 0) + Number(patch.bytesIn || 0);
+		if (patch.bytesOut) cur.bytesOut = (cur.bytesOut || 0) + Number(patch.bytesOut || 0);
+		if (patch.ip) cur.lastIp = patch.ip;
+		if (patch.proto) cur.lastProto = patch.proto;
+		cur.lastConnect = new Date().toISOString();
+		const logItem = {
+			ts: cur.lastConnect,
+			ip: patch.ip || cur.lastIp || '',
+			proto: patch.proto || '',
+			event: patch.event || 'traffic',
+			bytesIn: Number(patch.bytesIn || 0),
+			bytesOut: Number(patch.bytesOut || 0),
+		};
+		cur.logs = [logItem, ...(cur.logs || [])].slice(0, 用量日志上限);
+		table.users[id] = cur;
+		await 保存用量表(env, table);
+	} catch (e) {
+		console.error('记录用户活动', e);
+	}
+}
+
+function 格式化字节(n) {
+	const v = Number(n) || 0;
+	if (v < 1024) return v + ' B';
+	if (v < 1024 * 1024) return (v / 1024).toFixed(1) + ' KB';
+	if (v < 1024 * 1024 * 1024) return (v / (1024 * 1024)).toFixed(2) + ' MB';
+	return (v / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+
 async function 处理用户管理API(request, env, host, primaryUUID) {
 	const method = request.method.toUpperCase();
 	if (method === 'GET') {
 		const users = await 读取用户列表(env);
+		const usageTable = await 读取用量表(env);
+		const attachUsage = (row) => {
+			const u = usageTable.users[String(row.uuid).toLowerCase()] || {};
+			return {
+				...row,
+				connects: u.connects || 0,
+				bytesIn: u.bytesIn || 0,
+				bytesOut: u.bytesOut || 0,
+				bytesTotal: (u.bytesIn || 0) + (u.bytesOut || 0),
+				bytesTotalHuman: 格式化字节((u.bytesIn || 0) + (u.bytesOut || 0)),
+				lastConnect: u.lastConnect || null,
+				lastIp: u.lastIp || null,
+				lastProto: u.lastProto || null,
+				logs: u.logs || [],
+			};
+		};
 		const out = [];
 		const adminToken = await MD5MD5(host + primaryUUID);
-		out.push({
+		out.push(attachUsage({
 			uuid: primaryUUID,
 			name: 'admin',
 			enabled: true,
@@ -6912,15 +7123,15 @@ async function 处理用户管理API(request, env, host, primaryUUID) {
 			note: 'کاربر اصلی (از ADMIN/UUID)',
 			token: adminToken,
 			sub: `${host.startsWith('http') ? '' : 'https://'}${host}/sub?token=${adminToken}`,
-		});
+		}));
 		for (const u of users) {
 			const token = await MD5MD5(host + u.uuid);
-			out.push({
+			out.push(attachUsage({
 				...u,
 				primary: false,
 				token,
 				sub: `https://${host}/sub?token=${token}`,
-			});
+			}));
 		}
 		return new Response(JSON.stringify({ ok: true, users: out }, null, 2), {
 			status: 200,
