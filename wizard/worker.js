@@ -54,7 +54,7 @@ async function handleInstall(request, env) {
 
 	const token = String(body.token || '').trim();
 	const admin = String(body.admin || '').trim();
-	const projectName = sanitizeName(body.workerName || body.projectName || 'panel-warp');
+	const projectName = sanitizeName(body.workerName || body.projectName || 'panel-ech');
 	const key = String(body.key || '').trim();
 	let accountId = String(body.accountId || '').trim();
 
@@ -138,7 +138,7 @@ function sanitizeName(name) {
 		.toLowerCase()
 		.replace(/[^a-z0-9-]/g, '-')
 		.replace(/^-+|-+$/g, '')
-		.slice(0, 58) || 'panel-warp';
+		.slice(0, 58) || 'panel-ech';
 }
 
 async function fetchEdgeScript(env) {
@@ -452,7 +452,7 @@ input:focus {
     <p class="lead">ویزارد یک‌مسیره برای کاربران ایران: توکن API، رمز ادمین، دیپلوی روی <b dir="ltr">Pages</b>. پنل فارسی است؛ لینک تلگرام به‌خاطر فیلترینگ استفاده نمی‌شود.</p>
     <div class="cta-row">
       <button type="button" class="btn btn-primary" id="startBtn">شروع نصب</button>
-      <a class="btn btn-ghost" href="https://panel-warp.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
+      <a class="btn btn-ghost" href="https://panel-ech.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
     </div>
   </section>
 
@@ -481,7 +481,7 @@ input:focus {
       <h2>۲ · تنظیمات Pages</h2>
       <p class="hint">نام پروژهٔ Pages و رمز ورود پنل. روی حساب Cloudflare شما به‌صورت Pages دیپلوی می‌شود.</p>
       <label for="workerName">نام پروژهٔ Pages</label>
-      <input id="workerName" type="text" value="panel-warp" dir="ltr" />
+      <input id="workerName" type="text" value="panel-ech" dir="ltr" />
       <label for="admin">رمز ADMIN (ورود به /admin)</label>
       <input id="admin" type="password" autocomplete="new-password" placeholder="حداقل ۴ کاراکتر" />
       <label for="key">کلید سریع اشتراک KEY <span style="opacity:.7">(اختیاری)</span></label>

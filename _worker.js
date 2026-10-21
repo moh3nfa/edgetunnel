@@ -6051,19 +6051,19 @@ function Clash订阅配置文件热补丁(Clash_原始订阅内容, config_JSON 
 	const baseDnsBlock = `dns:
   enable: true
   default-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-    - 114.114.114.114
+    - 8.8.8.8
+    - 1.1.1.1
+    - 9.9.9.9
   use-hosts: true
   nameserver:
-    - https://sm2.doh.pub/dns-query
-    - https://dns.alidns.com/dns-query
+    - https://8.8.8.8/dns-query
+    - https://1.1.1.1/dns-query
   fallback:
     - 8.8.4.4
-    - 208.67.220.220
+    - 1.0.0.1
   fallback-filter:
     geoip: true
-    geoip-code: CN
+    geoip-code: IR
     ipcidr:
       - 240.0.0.0/4
       - 127.0.0.1/32
@@ -6183,10 +6183,21 @@ function Clash订阅配置文件热补丁(Clash_原始订阅内容, config_JSON 
 	};
 
 	if (!/^dns:\s*(?:\n|$)/m.test(clash_yaml)) clash_yaml = baseDnsBlock + clash_yaml;
+	const ECH_POLICY = (config_JSON?.ECHConfig?.Policy && typeof config_JSON.ECHConfig.Policy === 'object')
+		? config_JSON.ECHConfig.Policy
+		: null;
 	if (ECH_SNI && !HOSTS.includes(ECH_SNI)) HOSTS.push(ECH_SNI);
+	if (ECH_POLICY) {
+		for (const h of Object.keys(ECH_POLICY)) {
+			if (h && !HOSTS.includes(h)) HOSTS.push(h);
+		}
+	}
 
 	if (ECH启用 && HOSTS.length > 0) {
-		const hostsEntries = HOSTS.map(host => `    "${host}": ${ECH_DNS ? ECH_DNS : ''}`).join('\n');
+		const hostsEntries = HOSTS.map(host => {
+			const dns = (ECH_POLICY && ECH_POLICY[host]) || ECH_DNS || '';
+			return `    "${host}": ${dns}`;
+		}).join('\n');
 		clash_yaml = 插入NameserverPolicy(clash_yaml, hostsEntries);
 	}
 
@@ -6977,7 +6988,7 @@ async function 处理用户管理API(request, env, host, primaryUUID) {
 
 async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
 	const _p = 特征码字典[0];
-	const host = hostname, Ali_DoH = "https://dns.alidns.com/dns-query", ECH_SNI = "cloudflare-ech.com", 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
+	const host = hostname, Ali_DoH = "https://8.8.8.8/dns-query", ECH_SNI = "cloudflare-ech.com", ECH_DNS_UDP = "udp://1.1.1.1", ECH_SNI_ALT = "crypto.cloudflare.com", 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
 		TIME: new Date().toISOString(),
 		HOST: host,
 		HOSTS: [hostname],
@@ -6992,10 +7003,14 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 		启用0RTT: false,
 		TLS分片: null,
 		随机路径: false,
-		ECH: false,
+		ECH: true,
 		ECHConfig: {
 			DNS: Ali_DoH,
 			SNI: ECH_SNI,
+			Policy: {
+				[ECH_SNI]: Ali_DoH, // cloudflare-ech.com+https://8.8.8.8/dns-query
+				[ECH_SNI_ALT]: ECH_DNS_UDP, // crypto.cloudflare.com+udp://1.1.1.1
+			},
 		},
 		SS: {
 			加密方式: "aes-128-gcm",
@@ -7166,8 +7181,16 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	if (!config_JSON.TLS分片 && config_JSON.TLS分片 !== null) config_JSON.TLS分片 = null;
 	const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 	if (!config_JSON.Fingerprint) config_JSON.Fingerprint = "chrome";
-	if (!config_JSON.ECH) config_JSON.ECH = false;
-	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI };
+	if (typeof config_JSON.ECH !== 'boolean') config_JSON.ECH = true;
+	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI, Policy: { [ECH_SNI]: Ali_DoH, [ECH_SNI_ALT]: ECH_DNS_UDP } };
+	if (!config_JSON.ECHConfig.DNS || /alidns|doh\.pub|dns\.alidns/i.test(String(config_JSON.ECHConfig.DNS))) config_JSON.ECHConfig.DNS = Ali_DoH;
+	if (!config_JSON.ECHConfig.SNI) config_JSON.ECHConfig.SNI = ECH_SNI;
+	if (!config_JSON.ECHConfig.Policy || typeof config_JSON.ECHConfig.Policy !== 'object') {
+		config_JSON.ECHConfig.Policy = { [ECH_SNI]: Ali_DoH, [ECH_SNI_ALT]: ECH_DNS_UDP };
+	} else {
+		if (!config_JSON.ECHConfig.Policy[ECH_SNI]) config_JSON.ECHConfig.Policy[ECH_SNI] = config_JSON.ECHConfig.DNS || Ali_DoH;
+		if (!config_JSON.ECHConfig.Policy[ECH_SNI_ALT]) config_JSON.ECHConfig.Policy[ECH_SNI_ALT] = ECH_DNS_UDP;
+	}
 	const ECHLINK参数 = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
 	const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(config_JSON);
 	const 传输路径参数值 = 获取传输路径参数值(config_JSON, config_JSON.完整节点路径);
