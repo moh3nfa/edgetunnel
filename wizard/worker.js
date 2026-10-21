@@ -54,14 +54,31 @@ async function handleInstall(request, env) {
 		return Response.json({ ok: false, error: 'بدنهٔ درخواست نامعتبر است.' }, { status: 400 });
 	}
 
-	const token = String(body.token || '').trim();
+	const token = sanitizeToken(body.token);
 	const admin = String(body.admin || '').trim();
 	const projectName = sanitizeName(body.workerName || body.projectName || 'panel-log');
 	const key = String(body.key || '').trim();
-	let accountId = String(body.accountId || '').trim();
+	let accountId = String(body.accountId || '').trim().replace(/[^a-fA-F0-9]/g, '');
 
 	if (!token) {
-		return Response.json({ ok: false, error: 'توکن API کلادفلر لازم است.' }, { status: 400 });
+		return Response.json(
+			{
+				ok: false,
+				error:
+					'توکن API کلادفلر لازم است. فقط مقدار توکن را از داشبورد کپی کنید (بدون Bearer، بدون فاصله و بدون نقل‌قول).',
+			},
+			{ status: 400 }
+		);
+	}
+	if (!isPlausibleApiToken(token)) {
+		return Response.json(
+			{
+				ok: false,
+				error:
+					'فرمت توکن نامعتبر است. یک API Token بسازید (نه Global API Key) و فقط خود توکن را بچسبانید — بدون «Bearer»، گیومه یا فاصلهٔ اضافه.',
+			},
+			{ status: 400 }
+		);
 	}
 	if (!admin || admin.length < 4) {
 		return Response.json({ ok: false, error: 'رمز ادمین حداقل ۴ کاراکتر باشد.' }, { status: 400 });
@@ -230,15 +247,35 @@ async function deployPages(token, accountId, name, code, kvId, vars, log) {
 	return { host: project.subdomain || `${name}.pages.dev`, reused };
 }
 
+/** Strip paste artifacts that make Cloudflare return 6003 Invalid request headers. */
+function sanitizeToken(raw) {
+	let t = String(raw ?? '');
+	t = t.replace(/^\uFEFF/, ''); // BOM
+	t = t.replace(/[\u200B-\u200D\u2060\uFEFF\u200E\u200F]/g, ''); // ZW*/directional marks
+	t = t.replace(/[\u00A0\u202F\u2007]/g, ' '); // NBSP variants → space
+	t = t.trim();
+	t = t.replace(/^["'`]+|["'`]+$/g, '').trim();
+	t = t.replace(/^Bearer\s+/i, '').trim();
+	t = t.replace(/^["'`]+|["'`]+$/g, '').trim();
+	// Line-wrapped paste / accidental whitespace inside the token
+	t = t.replace(/[\r\n\t ]+/g, '');
+	return t;
+}
+
+function isPlausibleApiToken(token) {
+	// Cloudflare API tokens are opaque ASCII; Global API Keys are 37-hex and need email headers.
+	if (!token || token.length < 20 || token.length > 255) return false;
+	if (/^[a-f0-9]{37}$/i.test(token)) return false; // Global API Key — wrong auth mode for this wizard
+	return /^[A-Za-z0-9._~+/=-]+$/.test(token);
+}
+
 async function cf(token, method, path, jsonBody) {
-	const init = {
-		method,
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json',
-		},
-	};
-	if (jsonBody !== undefined) init.body = JSON.stringify(jsonBody);
+	const headers = { Authorization: `Bearer ${token}` };
+	const init = { method, headers };
+	if (jsonBody !== undefined) {
+		headers['Content-Type'] = 'application/json';
+		init.body = JSON.stringify(jsonBody);
+	}
 	const res = await fetch(`https://api.cloudflare.com/client/v4${path}`, init);
 	const data = await res.json().catch(() => ({ success: false, errors: [{ message: res.statusText }] }));
 	if (!res.ok && data.success === false) {
@@ -250,7 +287,30 @@ async function cf(token, method, path, jsonBody) {
 
 function formatErrors(data) {
 	if (!data?.errors?.length) return '';
-	return data.errors.map((e) => e.message || JSON.stringify(e)).join(' · ');
+	const parts = [];
+	for (const e of data.errors) {
+		const chain = (e.error_chain || []).map((c) => c.message).filter(Boolean);
+		const base = e.message || JSON.stringify(e);
+		parts.push(chain.length ? `${base} (${chain.join('; ')})` : base);
+		const hint = humanizeCfError(e, chain);
+		if (hint) parts.push(hint);
+	}
+	return parts.join(' · ');
+}
+
+function humanizeCfError(err, chainMsgs) {
+	const code = err?.code;
+	const blob = `${err?.message || ''} ${(chainMsgs || []).join(' ')}`.toLowerCase();
+	if (code === 6003 || blob.includes('invalid request headers') || blob.includes('authorization')) {
+		return 'راهنما: توکن را دوباره بدون فاصله/گیومه/کلمهٔ Bearer کپی کنید. از API Token استفاده کنید نه Global API Key.';
+	}
+	if (code === 9109 || blob.includes('authentication error') || blob.includes('invalid api token')) {
+		return 'راهنما: توکن اشتباه یا منقضی است؛ دسترسی Pages Edit + Workers KV Edit + Account Read را چک کنید.';
+	}
+	if (code === 10000 || blob.includes('authentication')) {
+		return 'راهنما: احراز هویت کلادفلر رد شد — توکن و سطح دسترسی را بررسی کنید.';
+	}
+	return '';
 }
 
 const WIZARD_HTML = `<!DOCTYPE html>
@@ -468,9 +528,9 @@ input:focus {
 
     <div class="step active" data-step="0">
       <h2>۱ · آماده‌سازی توکن</h2>
-      <p class="hint">API Token با دسترسی Cloudflare Pages (Edit)، Workers KV Storage (Edit) و Account Settings (Read).</p>
+      <p class="hint">یک <b>API Token</b> بسازید (نه Global API Key) با دسترسی Cloudflare Pages (Edit)، Workers KV Storage (Edit) و Account Settings (Read). فقط خود توکن را بچسبانید — بدون <span dir="ltr">Bearer</span>، گیومه یا فاصلهٔ اضافه.</p>
       <label for="token">Cloudflare API Token</label>
-      <input id="token" type="password" autocomplete="off" placeholder="cfat_…" dir="ltr" />
+      <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="cfat_…" dir="ltr" />
       <label for="accountId">Account ID <span style="opacity:.7">(اختیاری)</span></label>
       <input id="accountId" type="text" autocomplete="off" placeholder="مثلاً 9fdd…" dir="ltr" />
       <div class="row-actions">
@@ -548,9 +608,24 @@ input:focus {
   }
 
   startBtn.addEventListener('click', () => show(0));
+  function sanitizeTokenClient(raw) {
+    let t = String(raw || '');
+    t = t.replace(/^\uFEFF/, '').replace(/[\u200B-\u200D\u2060\uFEFF\u200E\u200F]/g, '');
+    t = t.replace(/[\u00A0\u202F\u2007]/g, ' ').trim();
+    t = t.replace(/^["'\`]+|["'\`]+$/g, '').trim();
+    t = t.replace(/^Bearer\s+/i, '').trim();
+    t = t.replace(/^["'\`]+|["'\`]+$/g, '').trim();
+    return t.replace(/[\r\n\t ]+/g, '');
+  }
+
   document.querySelectorAll('[data-next]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (i === 0 && !document.getElementById('token').value.trim()) return shake(document.getElementById('token'));
+      if (i === 0) {
+        const tokEl = document.getElementById('token');
+        const cleaned = sanitizeTokenClient(tokEl.value);
+        tokEl.value = cleaned;
+        if (!cleaned || cleaned.length < 20) return shake(tokEl);
+      }
       if (i === 1) {
         if (!document.getElementById('workerName').value.trim()) return shake(document.getElementById('workerName'));
         if (document.getElementById('admin').value.trim().length < 4) return shake(document.getElementById('admin'));
@@ -581,8 +656,10 @@ input:focus {
     logEl.hidden = false;
     logEl.innerHTML = '<div class="log-item"><span class="tag progress">…</span><span>شروع دیپلوی Pages</span></div>';
 
+    const tokenEl = document.getElementById('token');
+    tokenEl.value = sanitizeTokenClient(tokenEl.value);
     const payload = {
-      token: document.getElementById('token').value.trim(),
+      token: tokenEl.value,
       accountId: document.getElementById('accountId').value.trim(),
       workerName: document.getElementById('workerName').value.trim(),
       admin: document.getElementById('admin').value.trim(),
