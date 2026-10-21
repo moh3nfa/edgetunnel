@@ -462,7 +462,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['外部观察到的域名将统一显示为：', 'دامنه‌ای که از بیرون دیده می‌شود همیشه این است:', 'The domain seen from outside will always be:'],
 		['这从源头上', 'این کار از ریشه', 'This'],
 		['阻断了通过域名精准封锁节点的手段', 'راه مسدودسازی دقیق نود از روی دامنه را می‌بندد', 'cuts off the ability to precisely block nodes by domain'],
-		['ECH 会不会被封？', 'آیا ECH مسدود می‌شود؟ (در ایران معمولاً خودِ ECH نه؛ DoH گرفتنِ کانفیگ فیلتر می‌شود — از DNS نوع UDP استفاده کنید)', 'Will ECH be blocked? (In Iran usually not ECH itself — DoH for EchConfig is filtered; use UDP DNS)'],
+		['ECH 会不会被封？', 'آیا ECH مسدود می‌شود؟ (از امروز در بسیاری ISPهای ایران خودِ ECH بسته شده — فرگمنت Iran / 1-1 را روشن کنید و ECH را خاموش)', 'Will ECH be blocked? (As of now many Iranian ISPs block ECH itself — enable Iran/1-1 fragment and turn ECH off)'],
 		['理论上，GFW 只需', 'در تئوری، فایروال فقط کافی است', 'In theory the firewall only needs to'],
 		['直接阻断', 'مستقیماً مسدود کند:', 'block'],
 		['但这样会：', 'اما این کار باعث می‌شود:', 'But doing so would:'],
@@ -1667,7 +1667,14 @@ export default {
 						const 协议类型 = ((url.searchParams.has('surge') || ua.includes('surge')) && config_JSON.协议类型 !== 'ss') ? 'tro' + 'jan' : config_JSON.协议类型;
 						let 订阅内容 = '';
 						if (订阅类型 === 'mixed') {
-							const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+							const TLS分片模式 = String(config_JSON.TLS分片 || '');
+							const TLS分片参数 = TLS分片模式 === 'Shadowrocket'
+								? `fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}`
+								: TLS分片模式 === 'Happ'
+									? `fragment=${encodeURIComponent('3,1,tlshello')}`
+									: (TLS分片模式 === 'Iran' || TLS分片模式 === 'iran' || TLS分片模式 === '1-1')
+										? `fragment=${encodeURIComponent('3,1,1-1')}`
+										: '';
 							let 完整优选IP = [], 其他节点LINK = '', 反代IP池 = [];
 
 							if (!url.searchParams.has('sub') && config_JSON.优选订阅生成.local) { // 本地生成订阅
@@ -1765,10 +1772,22 @@ export default {
 									}
 									完整节点路径 = (完整节点路径.includes('?') ? 完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (完整节点路径 + '?enc=' + config_JSON.SS.加密方式)).replace(/([=,])/g, '\\$1');
 									if (!isSubConverterRequest) 完整节点路径 = 完整节点路径 + ';mux=0';
-									return `${协议类型}://${btoa(config_JSON.SS.加密方式 + ':00000000-0000-4000-8000-000000000000')}@${节点地址}:${节点端口}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (config_JSON.随机路径 ? 随机路径(完整节点路径) : 完整节点路径) + (config_JSON.SS.TLS ? ';tls' : '')) + ECHLINK参数 + TLS分片参数}#${encodeURIComponent(节点备注)}`;
+									return `${协议类型}://${btoa(config_JSON.SS.加密方式 + ':00000000-0000-4000-8000-000000000000')}@${节点地址}:${节点端口}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (config_JSON.随机路径 ? 随机路径(完整节点路径) : 完整节点路径) + (config_JSON.SS.TLS ? ';tls' : '')) + ECHLINK参数 + (TLS分片参数 ? '&' + TLS分片参数 : '')}#${encodeURIComponent(节点备注)}`;
 								} else {
 									const 传输路径参数值 = 获取传输路径参数值(config_JSON, 完整节点路径, 作为优选订阅生成器);
-									return `${协议类型}://00000000-0000-4000-8000-000000000000@${节点地址}:${节点端口}?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=example.com&fp=${config_JSON.Fingerprint}&sni=example.com&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none&alpn=${encodeURIComponent(config_JSON.ALPN)}#${encodeURIComponent(节点备注)}`;
+									// fragment را جدا از path بساز تا گم نشود
+									const qs = [
+										'security=tls',
+										'type=' + 传输协议 + ECHLINK参数,
+										域名字段名 + '=example.com',
+										'fp=' + config_JSON.Fingerprint,
+										'sni=example.com',
+										路径字段名 + '=' + encodeURIComponent(传输路径参数值),
+										'encryption=none',
+										'alpn=' + encodeURIComponent(config_JSON.ALPN || ''),
+									];
+									if (TLS分片参数) qs.push(TLS分片参数);
+									return `${协议类型}://00000000-0000-4000-8000-000000000000@${节点地址}:${节点端口}?${qs.join('&')}#${encodeURIComponent(节点备注)}`;
 								}
 							}).filter(item => item !== null).join('\n');
 						} else { // 订阅转换
@@ -7238,15 +7257,15 @@ async function 处理用户管理API(request, env, host, primaryUUID) {
 
 async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
 	const _p = 特征码字典[0];
-	// ایران: خودِ ECH لازم است؛ آنچه فیلتر می‌شود معمولاً DoH برای گرفتن EchConfig است.
-	// پس پیش‌فرض را روی UDP/DoQ (نه https DoH) می‌گذاریم و چند SNI جایگزین می‌دهیم.
+	// ایران (از ۱۴۰۴/۰۷): خودِ ECH در بسیاری ISPها بسته شده.
+	// مسیر کار: فرگمنت با packets=1-1 (نه tlshello) و بدون ECH. HOST همیشه دامنهٔ فعلی Pages باشد.
 	const host = hostname;
 	const ECH_DNS_UDP = "udp://1.1.1.1:443";
 	const ECH_DNS_OPENDNS = "udp://208.67.220.220:443";
 	const ECH_SNI = "cloudflare-ech.com";
 	const ECH_SNI_ALT = "crypto.cloudflare.com";
-	const ECH_SNI_IR = "godotengine.org"; // جایگزین رایج وقتی DoH کلادفلر فیلتر است
-	const Ali_DoH = ECH_DNS_OPENDNS; // نام قدیمی؛ مقدار ایران‌پسند (UDP)
+	const ECH_SNI_IR = "godotengine.org";
+	const Ali_DoH = ECH_DNS_OPENDNS;
 	const ECH_POLICY_IR = {
 		[ECH_SNI]: ECH_DNS_UDP,
 		[ECH_SNI_ALT]: ECH_DNS_UDP,
@@ -7265,9 +7284,9 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 		gRPCUserAgent: UA,
 		跳过证书验证: false,
 		启用0RTT: false,
-		TLS分片: "Happ", // همراه ECH؛ وقتی DPI روی ClientHello گیر می‌دهد کمک می‌کند
+		TLS分片: "Iran", // fragment 3,1,1-1 — جایگزین ECH وقتی ECH فیلتر است
 		随机路径: false,
-		ECH: true,
+		ECH: false,
 		ECHConfig: {
 			DNS: ECH_DNS_OPENDNS,
 			SNI: ECH_SNI_IR,
@@ -7379,6 +7398,16 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	config_JSON.HOST = host;
 	if (!config_JSON.HOSTS) config_JSON.HOSTS = [hostname];
 	if (env.HOST) config_JSON.HOSTS = (await 整理成数组(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
+	// دامنهٔ فعلی Pages باید همیشه در HOSTS باشد؛ پروژه‌های بلاک‌شده (مثل edge-fa) را حذف کن
+	{
+		const blocked = new Set(['edge-fa.pages.dev', 'panel-ir.pages.dev', 'edgetunnel.pages.dev']);
+		let hosts = (Array.isArray(config_JSON.HOSTS) ? config_JSON.HOSTS : [hostname])
+			.map(h => String(h || '').toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0])
+			.filter(h => h && !blocked.has(h));
+		if (!hosts.includes(hostname)) hosts = [hostname, ...hosts];
+		else hosts = [hostname, ...hosts.filter(h => h !== hostname)];
+		config_JSON.HOSTS = hosts;
+	}
 	config_JSON.UUID = userID;
 	if (!config_JSON.随机路径) config_JSON.随机路径 = false;
 	if (!config_JSON.启用0RTT) config_JSON.启用0RTT = false;
@@ -7439,15 +7468,24 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	const 最终查询部分 = 反代查询参数 ? (查询部分 ? 查询部分 + '&' + 反代查询参数 : '?' + 反代查询参数) : 查询部分;
 	config_JSON.完整节点路径 = (路径部分 || '/') + (路径部分 && 路径反代参数 ? '/' : '') + 路径反代参数 + 最终查询部分 + (config_JSON.启用0RTT ? (最终查询部分 ? '&' : '?') + 'ed=2560' : '');
 
-	if (config_JSON.TLS分片 === undefined) config_JSON.TLS分片 = "Happ";
-	// مهاجرت یک‌باره ایران: فرگمنت خاموش + ECH با DoH فیلترشده → Happ + UDP
-	if (config_JSON.TLS分片 === null && config_JSON.ECHConfig && /^https?:\/\//i.test(String(config_JSON.ECHConfig.DNS || ''))) {
-		config_JSON.TLS分片 = "Happ";
+	// مهاجرت ایران: ECH امروز فیلتر است → خاموش + فرگمنت 1-1
+	if (typeof config_JSON.ECH !== 'boolean') config_JSON.ECH = false;
+	if (config_JSON.ECH === true && !config_JSON._echForceOn) {
+		config_JSON.ECH = false;
+		if (config_JSON.TLS分片 == null || config_JSON.TLS分片 === 'Happ' || config_JSON.TLS分片 === 'Shadowrocket') {
+			config_JSON.TLS分片 = 'Iran';
+		}
 	}
-	const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+	if (config_JSON.TLS分片 === undefined || config_JSON.TLS分片 === null) config_JSON.TLS分片 = 'Iran';
+	const _tlsMode = String(config_JSON.TLS分片 || '');
+	const TLS分片参数 = _tlsMode === 'Shadowrocket'
+		? `fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}`
+		: _tlsMode === 'Happ'
+			? `fragment=${encodeURIComponent('3,1,tlshello')}`
+			: (_tlsMode === 'Iran' || _tlsMode === 'iran' || _tlsMode === '1-1')
+				? `fragment=${encodeURIComponent('3,1,1-1')}`
+				: '';
 	if (!config_JSON.Fingerprint) config_JSON.Fingerprint = "chrome";
-	if (typeof config_JSON.ECH !== 'boolean') config_JSON.ECH = true;
-	// ایران: ECH را خاموش نکن — فقط مسیر گرفتن EchConfig را از DoH فیلترشده به UDP ببر
 	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: ECH_DNS_OPENDNS, SNI: ECH_SNI_IR, Policy: { ...ECH_POLICY_IR } };
 	const _echDns = String(config_JSON.ECHConfig.DNS || '');
 	if (!_echDns || /^https?:\/\//i.test(_echDns) || /alidns|doh\.pub|dns\.alidns|8\.8\.8\.8|dns\.google/i.test(_echDns)) {
@@ -7464,12 +7502,25 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 			if (!cur || /^https?:\/\//i.test(String(cur))) config_JSON.ECHConfig.Policy[sni] = dns;
 		}
 	}
+	// با ECH فیلترشده پارامتر ech را به لینک نزن (فرگمنت جداگانه کافی است)
 	const ECHLINK参数 = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
 	const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(config_JSON);
 	const 传输路径参数值 = 获取传输路径参数值(config_JSON, config_JSON.完整节点路径);
-	config_JSON.LINK = config_JSON.协议类型 === 'ss'
-		? `${config_JSON.协议类型}://${btoa(config_JSON.SS.加密方式 + ':' + userID)}@${host}:${config_JSON.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${host};path=${((config_JSON.完整节点路径.includes('?') ? config_JSON.完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (config_JSON.完整节点路径 + '?enc=' + config_JSON.SS.加密方式)) + (config_JSON.SS.TLS ? ';tls' : ''))};mux=0`) + ECHLINK参数}#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`
-		: `${config_JSON.协议类型}://${userID}@${host}:443?security=tls&type=${传输协议 + ECHLINK参数}&${域名字段名}=${host}&fp=${config_JSON.Fingerprint}&sni=${host}&${路径字段名}=${encodeURIComponent(传输路径参数值) + TLS分片参数}&encryption=none#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
+	if (config_JSON.协议类型 === 'ss') {
+		config_JSON.LINK = `${config_JSON.协议类型}://${btoa(config_JSON.SS.加密方式 + ':' + userID)}@${host}:${config_JSON.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${host};path=${((config_JSON.完整节点路径.includes('?') ? config_JSON.完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (config_JSON.完整节点路径 + '?enc=' + config_JSON.SS.加密方式)) + (config_JSON.SS.TLS ? ';tls' : ''))};mux=0`) + ECHLINK参数}#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
+	} else {
+		const linkQs = [
+			'security=tls',
+			'type=' + 传输协议 + ECHLINK参数,
+			域名字段名 + '=' + host,
+			'fp=' + config_JSON.Fingerprint,
+			'sni=' + host,
+			路径字段名 + '=' + encodeURIComponent(传输路径参数值),
+			'encryption=none',
+		];
+		if (TLS分片参数) linkQs.push(TLS分片参数);
+		config_JSON.LINK = `${config_JSON.协议类型}://${userID}@${host}:443?${linkQs.join('&')}#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
+	}
 	config_JSON.优选订阅生成.TOKEN = await MD5MD5(hostname + userID);
 
 	const 初始化TG_JSON = { BotToken: null, ChatID: null };
