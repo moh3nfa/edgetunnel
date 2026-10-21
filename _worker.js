@@ -1089,7 +1089,50 @@ const 面板本地化脚本 = String.raw`(function () {
 		} catch (e) { }
 	}
 
-	function ready() { walk(document.documentElement); scrubBlockedLinks(document); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); }
+
+	function mountWarpToggle() {
+		try {
+			if (document.getElementById('edt-warp-btn') || !document.body) return;
+			if (location.pathname.indexOf('admin') < 0) return;
+			var btn = document.createElement('button');
+			btn.id = 'edt-warp-btn';
+			btn.type = 'button';
+			btn.style.cssText = 'position:fixed;bottom:max(58px,calc(env(safe-area-inset-bottom) + 44px));right:14px;z-index:2147483647;border:0;border-radius:999px;padding:9px 14px;font:600 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+			function paint(on) {
+				btn.textContent = on ? 'WARP خروجی: روشن' : 'WARP خروجی: خاموش';
+				btn.style.background = on ? '#5eead4' : 'rgba(255,255,255,.12)';
+				btn.style.color = on ? '#04201a' : '#e7f2f6';
+			}
+			paint(false);
+			btn.addEventListener('click', function () {
+				fetch('/admin/warp.json', { credentials: 'same-origin' })
+					.then(function (r) { return r.json(); })
+					.then(function (cur) {
+						var next = !(cur && cur.enabled);
+						return fetch('/admin/warp.json', {
+							method: 'POST', credentials: 'same-origin',
+							headers: { 'content-type': 'application/json' },
+							body: JSON.stringify({ enabled: next })
+						}).then(function (r) { return r.json(); });
+					})
+					.then(function (d) {
+						paint(!!(d && d.enabled));
+						alert(d && d.enabled
+							? 'خروجی روی PROXYIP/WARP فعال شد.\nتوجه: سقف ریکوئست روزانه CF را زیاد نمی‌کند؛ فقط IP خروجی را از مسیر پروکسی معکوس می‌فرستد و retry را کم می‌کند.'
+							: 'خروجی WARP خاموش شد (اولویت با اتصال مستقیم).');
+					})
+					.catch(function (e) { alert(String(e.message || e)); });
+			});
+			document.body.appendChild(btn);
+			fetch('/admin/warp.json', { credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (d) { paint(!!(d && d.enabled)); })
+				.catch(function () { });
+		} catch (e) { }
+	}
+
+	function ready() { walk(document.documentElement); scrubBlockedLinks(document); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); mountWarpToggle(); }
+
 
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
@@ -1142,10 +1185,26 @@ export default {
 		// Iran build: skip China-Mobile-specific single-path dial reduction
 		// if (!env.TCP_CONCURRENT_DIAL && TCP并发拨号数 !== 1 && 识别运营商(request) === 'cmcc') TCP并发拨号数 = 1;
 		let 默认反代IP = (`${request.cf.colo}.${特征码字典[0]}.${特征码字典[1]}SsSs.nEt`).toLowerCase(), 默认反代兜底 = true;
-		if (env.PROXYIP) {
+		const warpEnv = String(env.WARP || env.USE_WARP || '').trim().toLowerCase();
+		let WARP模式 = ['1', 'true', 'yes', 'on', 'warp'].includes(warpEnv);
+		try {
+			if (env.KV && typeof env.KV.get === 'function') {
+				const warpKV = await env.KV.get('warp.json');
+				if (warpKV) {
+					const wj = JSON.parse(warpKV);
+					if (typeof wj.enabled === 'boolean') WARP模式 = wj.enabled;
+					if (wj.proxyip) 默认反代IP = String(wj.proxyip).split(',')[0].trim() || 默认反代IP;
+				}
+			}
+		} catch (_) { /* ignore */ }
+		if (env.PROXYIP && String(env.PROXYIP).toLowerCase() !== 'warp') {
 			const proxyIPs = await 整理成数组(env.PROXYIP);
 			默认反代IP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
 			默认反代兜底 = false;
+		} else if (WARP模式 || String(env.PROXYIP || '').toLowerCase() === 'warp') {
+			WARP模式 = true;
+			// خروجی از طریق شبکهٔ PROXYIP/WARP-like (colo-based) — نه WARP کلاینت مصرفی
+			默认反代兜底 = true;
 		};
 		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || request.headers.get('Fly-Client-IP') || request.headers.get('X-Appengine-Remote-Addr') || request.headers.get('X-Cluster-Client-IP') || '未知IP';
 		允许的用户凭证 = await 加载允许的用户凭证(env, userID);
@@ -1169,10 +1228,12 @@ export default {
 			}
 		} else if (管理员密码 && upgradeHeader === 'websocket') {// WebSocket代理
 			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
+			if (WARP模式) { 反代上下文.WARP = true; 反代上下文.强制反代 = true; }
 			log(`[WebSocket] 命中请求: ${url.pathname}${url.search}`);
 			return await 处理WS请求(request, userID, url, 反代上下文);
 		} else if (管理员密码 && !访问路径.startsWith('admin/') && 访问路径 !== 'login' && request.method === 'POST') {// gRPC/叉HTTP代理
 			const 反代上下文 = await 反代参数获取(url, userID, 默认反代IP, 默认反代兜底);
+			if (WARP模式) { 反代上下文.WARP = true; 反代上下文.强制反代 = true; }
 			const 命中叉HTTP特征 = !!request.headers.get(本机标识头) || !!url.searchParams.get(本机标识键);
 			if (!命中叉HTTP特征 && contentType.startsWith('application/grpc')) {
 				log(`[gRPC] 命中请求: ${url.pathname}${url.search}`);
@@ -1212,6 +1273,28 @@ export default {
 					if (!authCookie || authCookie !== await MD5MD5(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/login' } });
 					if (访问路径 === 'admin/users.json' || 区分大小写访问路径 === 'admin/users.json') {
 						return await 处理用户管理API(request, env, host, userID);
+					} else if (访问路径 === 'admin/warp.json' || 区分大小写访问路径 === 'admin/warp.json') {
+						if (request.method === 'GET') {
+							let enabled = WARP模式, proxyip = 默认反代IP;
+							try {
+								const raw = await env.KV.get('warp.json');
+								if (raw) { const j = JSON.parse(raw); if (typeof j.enabled === 'boolean') enabled = j.enabled; if (j.proxyip) proxyip = j.proxyip; }
+							} catch (_) {}
+							return new Response(JSON.stringify({
+								ok: true, enabled, proxyip,
+								note: 'WARP اینجا یعنی خروجی اجباری از PROXYIP (شبکهٔ CF). سقف ریکوئست روزانهٔ Workers را زیاد نمی‌کند؛ با کم‌کردن retry ممکن است مصرف کمتر شود.'
+							}, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+						}
+						if (request.method === 'POST') {
+							let body = {};
+							try { body = await request.json(); } catch (_) {}
+							const enabled = body.enabled !== false && body.enabled !== 0 && body.enabled !== '0';
+							const proxyip = body.proxyip ? String(body.proxyip).trim() : null;
+							const data = { enabled, proxyip, updatedAt: new Date().toISOString() };
+							await env.KV.put('warp.json', JSON.stringify(data, null, 2));
+							return new Response(JSON.stringify({ ok: true, ...data }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+						}
+						return new Response(JSON.stringify({ ok: false, error: 'method' }), { status: 405, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					} else if (访问路径 === 'admin/log.json') {// 读取日志内容
 						const 读取日志内容 = await env.KV.get('log.json') || '[]';
 						return new Response(读取日志内容, { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -3556,7 +3639,16 @@ async function forwardataTCP(host, portNum, rawData, ws, respHeader, remoteConnW
 	}
 	remoteConnWrapper.retryConnect = async () => connecttoPry(!已通过代理发送首包);
 
-	if (ctx代理类型 && (ctx代理全局 || SOCKS5白名单.some(p => new RegExp(`^${p.replace(/\*/g, '.*')}$`, 'i').test(host)))) {
+	if (反代上下文.强制反代 || 反代上下文.WARP) {
+		log(`[TCP转发] حالت WARP/PROXYIP اجباری — بدون تلاش مستقیم اول`);
+		try {
+			await connecttoPry();
+			if (仅建立连接) return remoteConnWrapper.socket;
+		} catch (err) {
+			log(`[TCP转发] WARP/PROXYIP شکست: ${err.message}`);
+			throw err;
+		}
+	} else if (ctx代理类型 && (ctx代理全局 || SOCKS5白名单.some(p => new RegExp(`^${p.replace(/\*/g, '.*')}$`, 'i').test(host)))) {
 		log(`[TCP转发] 启用 SOCKS5/HTTP/HTTPS/TURN/SSTP 全局代理`);
 		try {
 			await connecttoPry();
