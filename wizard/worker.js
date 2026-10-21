@@ -511,7 +511,7 @@ input:focus {
   <section class="hero" id="hero">
     <div class="brand">Edge FA</div>
     <h1>نصب روی Cloudflare Pages در چند قدم</h1>
-    <p class="lead">ویزارد یک‌مسیره برای ایران: پنل فارسی با یوزرمنیجر، WARP و ECH را روی <b dir="ltr">Pages</b> نصب می‌کند.</p>
+    <p class="lead">ویزارد یک‌مسیره برای ایران: پنل فارسی با یوزرمنیجر، WARP و ECH (DNS از نوع UDP) را روی <b dir="ltr">Pages</b> نصب می‌کند.</p>
     <div class="cta-row">
       <button type="button" class="btn btn-primary" id="startBtn">شروع نصب</button>
       <a class="btn btn-ghost" href="https://panel-log.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>

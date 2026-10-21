@@ -462,7 +462,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['外部观察到的域名将统一显示为：', 'دامنه‌ای که از بیرون دیده می‌شود همیشه این است:', 'The domain seen from outside will always be:'],
 		['这从源头上', 'این کار از ریشه', 'This'],
 		['阻断了通过域名精准封锁节点的手段', 'راه مسدودسازی دقیق نود از روی دامنه را می‌بندد', 'cuts off the ability to precisely block nodes by domain'],
-		['ECH 会不会被封？', 'آیا ECH مسدود می‌شود؟', 'Will ECH be blocked?'],
+		['ECH 会不会被封？', 'آیا ECH مسدود می‌شود؟ (در ایران معمولاً خودِ ECH نه؛ DoH گرفتنِ کانفیگ فیلتر می‌شود — از DNS نوع UDP استفاده کنید)', 'Will ECH be blocked? (In Iran usually not ECH itself — DoH for EchConfig is filtered; use UDP DNS)'],
 		['理论上，GFW 只需', 'در تئوری، فایروال فقط کافی است', 'In theory the firewall only needs to'],
 		['直接阻断', 'مستقیماً مسدود کند:', 'block'],
 		['但这样会：', 'اما این کار باعث می‌شود:', 'But doing so would:'],
@@ -7238,7 +7238,21 @@ async function 处理用户管理API(request, env, host, primaryUUID) {
 
 async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
 	const _p = 特征码字典[0];
-	const host = hostname, Ali_DoH = "https://8.8.8.8/dns-query", ECH_SNI = "cloudflare-ech.com", ECH_DNS_UDP = "udp://1.1.1.1", ECH_SNI_ALT = "crypto.cloudflare.com", 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
+	// ایران: خودِ ECH لازم است؛ آنچه فیلتر می‌شود معمولاً DoH برای گرفتن EchConfig است.
+	// پس پیش‌فرض را روی UDP/DoQ (نه https DoH) می‌گذاریم و چند SNI جایگزین می‌دهیم.
+	const host = hostname;
+	const ECH_DNS_UDP = "udp://1.1.1.1:443";
+	const ECH_DNS_OPENDNS = "udp://208.67.220.220:443";
+	const ECH_SNI = "cloudflare-ech.com";
+	const ECH_SNI_ALT = "crypto.cloudflare.com";
+	const ECH_SNI_IR = "godotengine.org"; // جایگزین رایج وقتی DoH کلادفلر فیلتر است
+	const Ali_DoH = ECH_DNS_OPENDNS; // نام قدیمی؛ مقدار ایران‌پسند (UDP)
+	const ECH_POLICY_IR = {
+		[ECH_SNI]: ECH_DNS_UDP,
+		[ECH_SNI_ALT]: ECH_DNS_UDP,
+		[ECH_SNI_IR]: ECH_DNS_OPENDNS,
+	};
+	const 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
 		TIME: new Date().toISOString(),
 		HOST: host,
 		HOSTS: [hostname],
@@ -7251,16 +7265,13 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 		gRPCUserAgent: UA,
 		跳过证书验证: false,
 		启用0RTT: false,
-		TLS分片: null,
+		TLS分片: "Happ", // همراه ECH؛ وقتی DPI روی ClientHello گیر می‌دهد کمک می‌کند
 		随机路径: false,
 		ECH: true,
 		ECHConfig: {
-			DNS: Ali_DoH,
-			SNI: ECH_SNI,
-			Policy: {
-				[ECH_SNI]: Ali_DoH, // cloudflare-ech.com+https://8.8.8.8/dns-query
-				[ECH_SNI_ALT]: ECH_DNS_UDP, // crypto.cloudflare.com+udp://1.1.1.1
-			},
+			DNS: ECH_DNS_OPENDNS,
+			SNI: ECH_SNI_IR,
+			Policy: { ...ECH_POLICY_IR },
 		},
 		SS: {
 			加密方式: "aes-128-gcm",
@@ -7428,18 +7439,30 @@ async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重�
 	const 最终查询部分 = 反代查询参数 ? (查询部分 ? 查询部分 + '&' + 反代查询参数 : '?' + 反代查询参数) : 查询部分;
 	config_JSON.完整节点路径 = (路径部分 || '/') + (路径部分 && 路径反代参数 ? '/' : '') + 路径反代参数 + 最终查询部分 + (config_JSON.启用0RTT ? (最终查询部分 ? '&' : '?') + 'ed=2560' : '');
 
-	if (!config_JSON.TLS分片 && config_JSON.TLS分片 !== null) config_JSON.TLS分片 = null;
+	if (config_JSON.TLS分片 === undefined) config_JSON.TLS分片 = "Happ";
+	// مهاجرت یک‌باره ایران: فرگمنت خاموش + ECH با DoH فیلترشده → Happ + UDP
+	if (config_JSON.TLS分片 === null && config_JSON.ECHConfig && /^https?:\/\//i.test(String(config_JSON.ECHConfig.DNS || ''))) {
+		config_JSON.TLS分片 = "Happ";
+	}
 	const TLS分片参数 = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 	if (!config_JSON.Fingerprint) config_JSON.Fingerprint = "chrome";
 	if (typeof config_JSON.ECH !== 'boolean') config_JSON.ECH = true;
-	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI, Policy: { [ECH_SNI]: Ali_DoH, [ECH_SNI_ALT]: ECH_DNS_UDP } };
-	if (!config_JSON.ECHConfig.DNS || /alidns|doh\.pub|dns\.alidns/i.test(String(config_JSON.ECHConfig.DNS))) config_JSON.ECHConfig.DNS = Ali_DoH;
-	if (!config_JSON.ECHConfig.SNI) config_JSON.ECHConfig.SNI = ECH_SNI;
+	// ایران: ECH را خاموش نکن — فقط مسیر گرفتن EchConfig را از DoH فیلترشده به UDP ببر
+	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: ECH_DNS_OPENDNS, SNI: ECH_SNI_IR, Policy: { ...ECH_POLICY_IR } };
+	const _echDns = String(config_JSON.ECHConfig.DNS || '');
+	if (!_echDns || /^https?:\/\//i.test(_echDns) || /alidns|doh\.pub|dns\.alidns|8\.8\.8\.8|dns\.google/i.test(_echDns)) {
+		config_JSON.ECHConfig.DNS = ECH_DNS_OPENDNS;
+	}
+	if (!config_JSON.ECHConfig.SNI || config_JSON.ECHConfig.SNI === 'cloudflare-ech.com') {
+		config_JSON.ECHConfig.SNI = ECH_SNI_IR;
+	}
 	if (!config_JSON.ECHConfig.Policy || typeof config_JSON.ECHConfig.Policy !== 'object') {
-		config_JSON.ECHConfig.Policy = { [ECH_SNI]: Ali_DoH, [ECH_SNI_ALT]: ECH_DNS_UDP };
+		config_JSON.ECHConfig.Policy = { ...ECH_POLICY_IR };
 	} else {
-		if (!config_JSON.ECHConfig.Policy[ECH_SNI]) config_JSON.ECHConfig.Policy[ECH_SNI] = config_JSON.ECHConfig.DNS || Ali_DoH;
-		if (!config_JSON.ECHConfig.Policy[ECH_SNI_ALT]) config_JSON.ECHConfig.Policy[ECH_SNI_ALT] = ECH_DNS_UDP;
+		for (const [sni, dns] of Object.entries(ECH_POLICY_IR)) {
+			const cur = config_JSON.ECHConfig.Policy[sni];
+			if (!cur || /^https?:\/\//i.test(String(cur))) config_JSON.ECHConfig.Policy[sni] = dns;
+		}
 	}
 	const ECHLINK参数 = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
 	const { type: 传输协议, 路径字段名, 域名字段名 } = 获取传输协议配置(config_JSON);
