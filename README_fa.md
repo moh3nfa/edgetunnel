@@ -7,14 +7,18 @@
 [![Stars](https://img.shields.io/github/stars/cmliu/edgetunnel?style=flat-square&logo=github)](https://github.com/cmliu/edgetunnel/stargazers)
 [![Forks](https://img.shields.io/github/forks/cmliu/edgetunnel?style=flat-square&logo=github)](https://github.com/cmliu/edgetunnel/network/members)
 [![License](https://img.shields.io/github/license/cmliu/edgetunnel?style=flat-square)](https://github.com/cmliu/edgetunnel/blob/main/LICENSE)
-[![Telegram](https://img.shields.io/badge/Telegram-Group-blue?style=flat-square&logo=telegram)](https://t.me/CMLiussss)
-[![YouTube](https://img.shields.io/badge/YouTube-Channel-red?style=flat-square&logo=youtube)](https://www.youtube.com/watch?v=LeT4jQUh8ok)
 [![zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=flat-square&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/cmliu/edgetunnel)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/cmliu/edgetunnel)
 
 [English](README_en.md) | [فارسی](README_fa.md) | [简体中文](README_zh.md)
 
 ---
+
+> [!IMPORTANT]
+> **مدیریت کاربران:** از داخل `/admin` دکمهٔ «مدیریت کاربران» را باز کنید؛ برای هر نفر UUID و لینک اشتراک جدا بسازید.
+
+> **نسخهٔ مناسب ایران:** زبان پیش‌فرض پنل فارسی است. چون **تلگرام داخل ایران فیلتر است**، لینک‌ها و دعوت‌های تلگرام از پنل و مستندات فارسی حذف شده‌اند؛ پشتیبانی از طریق [GitHub Issues](https://github.com/moh3nfa/edgetunnel/issues) انجام شود.
+
 
 ## 📖 معرفی پروژه
 
@@ -159,7 +163,7 @@
 | **OFF_LOG** | ❌ | `1` یا `true` | ثبت گزارش در KV به‌طور پیش‌فرض **روشن** است و با مقدار `1` یا `true` **خاموش** می‌شود |
 | **BEST_SUB** | ❌ | `1` یا `true` | قابلیت کار به‌عنوان **مولد اشتراک برگزیده (优选订阅生成器)** به‌طور پیش‌فرض **خاموش** است و با مقدار `1` یا `true` **روشن** می‌شود |
 | **PRELOAD_RACE_DIAL** | ❌ | `1` یا `true` | قابلیت **شماره‌گیری رقابتیِ پیش‌بارگذاری‌شده** به‌طور پیش‌فرض **خاموش** است و با مقدار `1` یا `true` **روشن** می‌شود |
-| **TCP_CONCURRENT_DIAL** | ❌ | `2` | **تعداد اتصال هم‌زمان TCP**؛ پیش‌فرض `2`. با تنظیم این متغیر، دیگر روی شبکه‌ی China Mobile به‌طور خودکار به یک مسیر کاهش نمی‌یابد |
+| **TCP_CONCURRENT_DIAL** | ❌ | `2` | **تعداد اتصال هم‌زمان TCP**؛ پیش‌فرض `2`. با تنظیم این متغیر، تعداد مسیرهای TCP ثابت می‌ماند (مناسب شبکه‌های داخل ایران) |
 | **PROXY_CONCURRENT_DIAL** | ❌ | `1` | **تعداد اتصال هم‌زمان پروکسی معکوس**؛ پیش‌فرض `1`. هرچه بیشتر باشد اتصال سریع‌تر برقرار می‌شود، اما تعویض IP هم بیشتر رخ می‌دهد |
 
 ---
@@ -232,9 +236,6 @@
 - [SHIJS1999/cloudflare-worker-vless-ip](https://github.com/SHIJS1999/cloudflare-worker-vless-ip)
 - [Stanley-baby](https://github.com/Stanley-baby)
 - [ACL4SSR](https://github.com/ACL4SSR/ACL4SSR/tree/master/Clash/config)
-- [股神 (God of Stocks)](https://t.me/CF_NAT/38889)
-- [Workers/Pages Metrics](https://t.me/zhetengsha/3382)
-- [白嫖哥 (Freebie Bro)](https://t.me/bestcfipas)
 - [Mingyu](https://github.com/ymyuuu/workers-vless)
 - [ToiCF/CF-Workers-HTTPS](https://github.com/ToiCF/CF-Workers-HTTPS)
 - [ToiCF/CF-Workers-TURN](https://github.com/ToiCF/CF-Workers-TURN)

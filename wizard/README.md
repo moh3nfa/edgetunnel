@@ -14,7 +14,7 @@ One-page Persian install wizard. It deploys **edgetunnel onto Cloudflare Pages**
 ## Live URLs
 
 - Wizard UI: https://edge-setup.pages.dev/  
-- Example Pages install: https://edge-fa.pages.dev/login  
+- Example Pages install: https://panel-ir.pages.dev/login  
 
 ## Token permissions
 

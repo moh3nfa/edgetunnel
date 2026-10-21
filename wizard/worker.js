@@ -54,7 +54,7 @@ async function handleInstall(request, env) {
 
 	const token = String(body.token || '').trim();
 	const admin = String(body.admin || '').trim();
-	const projectName = sanitizeName(body.workerName || body.projectName || 'edge-fa');
+	const projectName = sanitizeName(body.workerName || body.projectName || 'panel-ir');
 	const key = String(body.key || '').trim();
 	let accountId = String(body.accountId || '').trim();
 
@@ -138,7 +138,7 @@ function sanitizeName(name) {
 		.toLowerCase()
 		.replace(/[^a-z0-9-]/g, '-')
 		.replace(/^-+|-+$/g, '')
-		.slice(0, 58) || 'edge-fa';
+		.slice(0, 58) || 'panel-ir';
 }
 
 async function fetchEdgeScript(env) {
@@ -449,10 +449,10 @@ input:focus {
   <section class="hero" id="hero">
     <div class="brand">edgetunnel</div>
     <h1>نصب روی Cloudflare Pages در چند قدم</h1>
-    <p class="lead">ویزارد یک‌مسیره: توکن API، رمز ادمین، و دیپلوی خودکار روی <b dir="ltr">Pages</b> — بدون Worker جداگانه.</p>
+    <p class="lead">ویزارد یک‌مسیره برای کاربران ایران: توکن API، رمز ادمین، دیپلوی روی <b dir="ltr">Pages</b>. پنل فارسی است؛ لینک تلگرام به‌خاطر فیلترینگ استفاده نمی‌شود.</p>
     <div class="cta-row">
       <button type="button" class="btn btn-primary" id="startBtn">شروع نصب</button>
-      <a class="btn btn-ghost" href="https://edge-fa.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
+      <a class="btn btn-ghost" href="https://panel-ir.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
     </div>
   </section>
 
@@ -481,7 +481,7 @@ input:focus {
       <h2>۲ · تنظیمات Pages</h2>
       <p class="hint">نام پروژهٔ Pages و رمز ورود پنل. روی حساب Cloudflare شما به‌صورت Pages دیپلوی می‌شود.</p>
       <label for="workerName">نام پروژهٔ Pages</label>
-      <input id="workerName" type="text" value="edge-fa" dir="ltr" />
+      <input id="workerName" type="text" value="panel-ir" dir="ltr" />
       <label for="admin">رمز ADMIN (ورود به /admin)</label>
       <input id="admin" type="password" autocomplete="new-password" placeholder="حداقل ۴ کاراکتر" />
       <label for="key">کلید سریع اشتراک KEY <span style="opacity:.7">(اختیاری)</span></label>

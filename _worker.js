@@ -1,10 +1,10 @@
 const Version = '2026-10-08 22:23:27';
-let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false;
+let config_JSON, 缓存SOCKS5白名单 = null, 调试日志打印 = false, 允许的用户凭证 = null;
 let SOCKS5白名单 = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
 const Pages静态页面 = 'https://edt-pages.github.io', EDT_版本号 = Number(String(Version).replace(/\D+/g, ''));
-/////////////////////////////////////////////////////// 面板界面本地化（فارسی / English） ///////////////////////////////////////////////
+/////////////////////////////////////////////////////// 面板界面本地化（ایران / فارسی / English） ///////////////////////////////////////////////
 // 面板页面(/login /admin /noADMIN /noKV)来自上面的 Pages静态页面，这里只在返回前注入一段前端翻译脚本，不改动任何代理/订阅逻辑。
-// 默认语言: English；第二语言: فارسی；左下角切换按钮: EN / فارسی；原中文界面仅可通过在地址后手动添加 ?lang=zh 恢复（所选语言会保存在浏览器 localStorage 中）。
+// پیش‌فرض: فارسی (ایران). دکمه EN | فارسی. تلگرام در UI پاک می‌شود (فیلتر ایران). ?lang=zh برای چینی.
 const 面板本地化脚本 = String.raw`(function () {
 	if (window.__edtI18n) return;
 	window.__edtI18n = 1;
@@ -224,14 +224,14 @@ const 面板本地化脚本 = String.raw`(function () {
 
 		// ---------- اعلان‌ها و آمار ----------
 		['消息通知设置', 'تنظیمات اعلان‌ها', 'Notification settings'],
-		['Telegram Bot 通知设置', 'تنظیمات اعلان ربات تلگرام', 'Telegram Bot notification settings'],
+		['Telegram Bot 通知设置', 'تنظیمات اعلان (تلگرام در ایران فیلتر است)', 'Alerts (Telegram is blocked in Iran)'],
 		['Cloudflare Workers/Pages 可用请求数统计', 'آمار درخواست‌های مجاز Cloudflare Workers/Pages', 'Cloudflare Workers/Pages available request stats'],
 		['参数配置', 'پیکربندی پارامترها', 'Configure parameters'],
 		['清除配置', 'پاک‌کردن تنظیمات', 'Clear config'],
 		['查看操作日志', 'مشاهده‌ی گزارش عملیات', 'View operation log'],
 		['所有操作日志', 'همه‌ی گزارش‌های عملیات', 'All operation logs'],
 		['因为KV空间有限，所以只保留4MB的操作日志，当日志大小超过该容量会自动清理最老的日志记录。', 'چون فضای KV محدود است، فقط ۴ مگابایت از گزارش‌ها نگه داشته می‌شود و با عبور از این حد، قدیمی‌ترین گزارش‌ها خودکار پاک می‌شوند.', 'KV space is limited, so only 4MB of logs are kept; the oldest records are cleaned automatically when this is exceeded.'],
-		['TelegramBot 通知参数配置', 'پیکربندی اعلان ربات تلگرام', 'Telegram Bot notification settings'],
+		['TelegramBot 通知参数配置', 'پیکربندی اعلان پیام‌رسان (اختیاری؛ تلگرام فیلتر است)', 'Messenger alert settings (optional; Telegram blocked in Iran)'],
 		['请选择统计方案', 'روش آمارگیری را انتخاب کنید', 'Choose a statistics method'],
 		['支持多账号统计', 'پشتیبانی از آمار چند حساب', 'multi-account stats supported'],
 		['API令牌权限 开启', 'در دسترسی‌های توکن API این مورد را فعال کنید:', 'Enable this API token permission:'],
@@ -255,9 +255,9 @@ const 面板本地化脚本 = String.raw`(function () {
 		// ---------- هشدارها ----------
 		['确定是否完全重置配置？', 'آیا از بازنشانی کامل تنظیمات مطمئن هستید؟', 'Do you really want to fully reset the configuration?'],
 		['重置配置将会初始化所有设置，包括订阅生成、节点信息、反代配置等。此操作不可撤销，请谨慎操作。', 'بازنشانی، همه‌ی تنظیمات از جمله ساخت اشتراک، اطلاعات نود و پیکربندی پروکسی معکوس را به حالت اولیه برمی‌گرداند. این کار قابل بازگشت نیست؛ با احتیاط ادامه دهید.', 'Resetting restores all settings, including subscription generation, node info and reverse-proxy settings. This cannot be undone, so proceed with care.'],
-		['清除 Telegram 配置', 'پاک‌کردن تنظیمات تلگرام', 'Clear Telegram config'],
-		['清除 Telegram Bot 通知配置后，将无法继续接收 Telegram 消息通知。此操作不可撤销，请谨慎操作。', 'پس از پاک‌کردن تنظیمات اعلان ربات تلگرام، دیگر اعلانی در تلگرام دریافت نمی‌کنید. این کار قابل بازگشت نیست؛ با احتیاط ادامه دهید.', 'After clearing the Telegram Bot notification config you will no longer receive Telegram notifications. This cannot be undone, so proceed with care.'],
-		['确定是否清除 Telegram 通知配置？', 'آیا از پاک‌کردن تنظیمات اعلان تلگرام مطمئن هستید؟', 'Do you really want to clear the Telegram notification config?'],
+		['清除 Telegram 配置', 'پاک‌کردن تنظیمات اعلان', 'Clear alert config'],
+		['清除 Telegram Bot 通知配置后，将无法继续接收 Telegram 消息通知。此操作不可撤销，请谨慎操作。', 'پس از پاک‌کردن، اعلان پیام‌رسان قطع می‌شود. این کار برگشت‌ناپذیر است.', 'After clearing, messenger alerts stop. This cannot be undone.'],
+		['确定是否清除 Telegram 通知配置？', 'تنظیمات اعلان پاک شود؟', 'Clear alert settings?'],
 		['清除 Cloudflare 配置', 'پاک‌کردن تنظیمات Cloudflare', 'Clear Cloudflare config'],
 		['清除 Cloudflare 配置后，将无法继续统计 Workers/Pages 的请求数。此操作不可撤销，请谨慎操作。', 'پس از پاک‌کردن تنظیمات Cloudflare، آمار درخواست‌های Workers/Pages دیگر محاسبه نمی‌شود. این کار قابل بازگشت نیست؛ با احتیاط ادامه دهید.', 'After clearing the Cloudflare config, Workers/Pages request stats will no longer be collected. This cannot be undone, so proceed with care.'],
 		['确定是否清除 Cloudflare 通知配置？', 'آیا از پاک‌کردن تنظیمات Cloudflare مطمئن هستید؟', 'Do you really want to clear the Cloudflare config?'],
@@ -392,7 +392,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['为什么需要反代模式？PROXYIP又是什么？', 'چرا حالت پروکسی معکوس لازم است؟ PROXYIP چیست؟', 'Why is reverse-proxy mode needed? What is PROXYIP?'],
 		['场景一：访问非 Cloudflare CDN 站点', 'حالت اول: دسترسی به سایت‌هایی که پشت CDN کلودفلر نیستند', 'Case 1: visiting sites not behind Cloudflare CDN'],
 		['场景二：访问 Cloudflare CDN 站点', 'حالت دوم: دسترسی به سایت‌های پشت CDN کلودفلر', 'Case 2: visiting sites behind Cloudflare CDN'],
-		['例如：油管、谷歌。Worker 可以直接访问，不需要先找 PROXYIP。', 'مثلاً یوتیوب و گوگل. Worker مستقیماً به آن‌ها وصل می‌شود و به PROXYIP نیازی نیست.', 'For example YouTube and Google. The Worker connects directly, no PROXYIP needed.'],
+		['例如：油管、谷歌。Worker 可以直接访问，不需要先找 PROXYIP。', 'مثلاً گوگل و گیت‌هاب. Worker مستقیم وصل می‌شود و لزوماً به PROXYIP نیاز نیست.', 'e.g. Google and GitHub. The Worker can connect directly without PROXYIP.'],
 		['例如：推特、ChatGPT。根据', 'مثلاً توییتر و ChatGPT. طبق', 'For example Twitter and ChatGPT. According to the'],
 		['官方文档，Worker 不能直接访问 Cloudflare 自己，所以需要跳板。', 'مستندات رسمی، Worker نمی‌تواند مستقیماً به خود کلودفلر وصل شود، پس به یک واسطه نیاز دارد.', 'official docs, a Worker cannot connect directly to Cloudflare itself, so a relay is needed.'],
 		['实际落地IP 由 优选域名/IP 决定', 'IP خروجی واقعی را دامنه/IP برگزیده تعیین می‌کند', 'The actual exit IP is decided by the preferred domain/IP'],
@@ -402,7 +402,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['就近机房处理请求', 'نزدیک‌ترین دیتاسنتر درخواست را پردازش می‌کند', 'The nearest data center handles the request'],
 		['发现目标也在 Cloudflare', 'تشخیص می‌دهد مقصد هم روی کلودفلر است', 'Detects the target is also on Cloudflare'],
 		['外部跳板，帮 Worker 继续访问', 'واسطه‌ی بیرونی که Worker را ادامه می‌دهد', 'An external relay that continues the connection for the Worker'],
-		['油管 / 谷歌', 'یوتیوب / گوگل', 'YouTube / Google'],
+		['油管 / 谷歌', 'سایت‌های خارجی / گوگل', 'External sites / Google'],
 		['推特 / ChatGPT', 'توییتر / ChatGPT', 'Twitter / ChatGPT'],
 		['非 Cloudflare CDN 站点', 'سایت خارج از CDN کلودفلر', 'Non-Cloudflare CDN site'],
 		['落地 IP：', 'IP خروجی: ', 'Exit IP: '],
@@ -433,7 +433,7 @@ const 面板本地化脚本 = String.raw`(function () {
 		['表现通常为：', 'علامت معمول:', 'Typical symptom:'],
 		['所有节点瞬间 -1，全部无法使用', 'همه‌ی نودها یک‌دفعه -1 می‌شوند و هیچ‌کدام کار نمی‌کند', 'all nodes instantly show -1 and none work'],
 		['其原因并不是节点真的失效，而是', 'علتش از کار افتادن واقعی نودها نیست، بلکه', 'The cause is not that the nodes really failed, but that the '],
-		['运营商 / GFW 通过阻断节点域名的访问来干扰代理连接', 'اپراتور/فایروال با مسدودکردن دامنه‌ی نود، اتصال پروکسی را مختل می‌کند', 'ISP / firewall interferes with the proxy by blocking the node domain'],
+		['运营商 / GFW 通过阻断节点域名的访问来干扰代理连接', 'فیلترینگ/اپراتور با مسدودکردن دامنه‌ی نود، اتصال را مختل می‌کند', 'Filtering / ISP blocks the node domain and breaks the proxy'],
 		['由于这种阻断大多是自动化策略，容易误判，因此', 'چون این مسدودسازی بیشتر خودکار است و خطا هم دارد،', 'Because this blocking is mostly automated and error-prone,'],
 		['过一段时间节点又可能恢复正常', 'بعد از مدتی نودها ممکن است دوباره درست شوند', 'the nodes may recover after a while'],
 		['，反复循环', '، و این چرخه تکرار می‌شود', ', repeating in a loop'],
@@ -886,7 +886,7 @@ const 面板本地化脚本 = String.raw`(function () {
 	} catch (e) { }
 
 	// ---------- دکمه‌ی آدرس شخصی «تغییردهنده» کنار آیکن GitHub / Telegram در فوتر پنل ----------
-	var MY_ADDRESS = 'https://www.soroush.my.id';
+	var MY_ADDRESS = 'https://github.com/moh3nfa/edgetunnel';
 	var ADDR_ID = 'edt-modder-link', addrTimer = 0;
 	var ADDR_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3z"/></svg>';
 
@@ -917,8 +917,8 @@ const 面板本地化脚本 = String.raw`(function () {
 			n.id = ADDR_ID;
 			n.removeAttribute('onclick');
 			n.innerHTML = ADDR_ICON;
-			n.setAttribute('title', 'Soroush');
-			n.setAttribute('aria-label', 'Soroush');
+			n.setAttribute('title', 'GitHub — edgetunnel ایران');
+			n.setAttribute('aria-label', 'GitHub edgetunnel');
 			if (n.tagName === 'A') {
 				n.href = MY_ADDRESS;
 				n.target = '_blank';
@@ -941,13 +941,157 @@ const 面板本地化脚本 = String.raw`(function () {
 			var m = list[i];
 			if (m.type === 'characterData') procText(m.target);
 			else if (m.type === 'attributes') procAttrs(m.target);
-			else for (var j = 0; j < m.addedNodes.length; j++) walk(m.addedNodes[j]);
+			else for (var j = 0; j < m.addedNodes.length; j++) { walk(m.addedNodes[j]); scrubBlockedLinks(m.addedNodes[j]); }
 		}
 		scheduleAddress();
 	});
 	mo.observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS.concat(['value']) });
 
-	function ready() { walk(document.documentElement); mountSwitch(); mountAddress(); }
+
+	// ---------- ایران: حذف لینک‌های تلگرام (فیلتر) و بنر راهنما ----------
+	var BLOCKED_HREF = /(t\.me\/|telegram\.(me|org|dog)|tx\.me\/)/i;
+	function scrubBlockedLinks(root) {
+		try {
+			var scope = root && root.querySelectorAll ? root : document;
+			var nodes = scope.querySelectorAll ? scope.querySelectorAll('a[href]') : [];
+			for (var i = 0; i < nodes.length; i++) {
+				var a = nodes[i];
+				var href = a.getAttribute('href') || '';
+				if (!BLOCKED_HREF.test(href)) continue;
+				a.setAttribute('href', MY_ADDRESS);
+				a.setAttribute('title', 'تلگرام در ایران فیلتر است — لینک جایگزین');
+				a.setAttribute('data-edt-scrubbed', 'telegram');
+				if (!a.textContent || /telegram|t\.me/i.test(a.textContent)) {
+					a.textContent = 'GitHub';
+				}
+			}
+			// SVG/icon-only telegram buttons often wrap an <a>
+			var svgs = scope.querySelectorAll ? scope.querySelectorAll('[class*="telegram" i], [id*="telegram" i], [aria-label*="telegram" i]') : [];
+			for (var j = 0; j < svgs.length; j++) {
+				var el = svgs[j];
+				var link = el.closest && el.closest('a');
+				if (link && BLOCKED_HREF.test(link.getAttribute('href') || '')) {
+					link.setAttribute('href', MY_ADDRESS);
+					link.setAttribute('data-edt-scrubbed', 'telegram');
+				}
+			}
+		} catch (e) { }
+	}
+
+	function mountIranTip() {
+		try {
+			if (document.getElementById('edt-iran-tip') || !document.body) return;
+			var tip = document.createElement('div');
+			tip.id = 'edt-iran-tip';
+			tip.setAttribute('dir', 'rtl');
+			tip.style.cssText = 'position:fixed;top:12px;right:12px;left:12px;z-index:2147483645;max-width:420px;margin-right:auto;padding:10px 14px;border-radius:12px;background:rgba(8,40,36,.92);color:#e7f2f6;font:13px/1.55 Vazirmatn,Tahoma,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.35);border:1px solid rgba(94,234,212,.25)';
+			tip.innerHTML = '<div style="font-weight:700;margin-bottom:4px">نسخهٔ فارسی — مناسب ایران</div><div style="opacity:.9">لینک‌های تلگرام به‌خاطر فیلترینگ داخل ایران حذف/جایگزین شده‌اند. پشتیبانی و مستندات از طریق GitHub در دسترس است.</div><button type="button" id="edt-iran-tip-x" style="margin-top:8px;border:0;background:rgba(94,234,212,.2);color:#5eead4;padding:4px 10px;border-radius:999px;cursor:pointer;font:inherit">متوجه شدم</button>';
+			document.body.appendChild(tip);
+			var x = document.getElementById('edt-iran-tip-x');
+			if (x) x.addEventListener('click', function () {
+				try { localStorage.setItem('edt_iran_tip_dismissed', '1'); } catch (e) { }
+				tip.remove();
+			});
+			try { if (localStorage.getItem('edt_iran_tip_dismissed') === '1') tip.remove(); } catch (e) { }
+		} catch (e) { }
+	}
+
+
+	// ---------- یوزر منیجر (فقط /admin) ----------
+	function mountUserManager() {
+		try {
+			if (document.getElementById('edt-um') || !document.body) return;
+			if (location.pathname.indexOf('admin') < 0) return;
+			var btn = document.createElement('button');
+			btn.id = 'edt-um-btn';
+			btn.type = 'button';
+			btn.textContent = 'مدیریت کاربران';
+			btn.style.cssText = 'position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:14px;z-index:2147483647;border:0;border-radius:999px;padding:10px 16px;font:600 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;background:#5eead4;color:#04201a;box-shadow:0 8px 28px rgba(45,212,191,.35)';
+			var panel = document.createElement('div');
+			panel.id = 'edt-um';
+			panel.hidden = true;
+			panel.setAttribute('dir', 'rtl');
+			panel.style.cssText = 'position:fixed;inset:auto 12px 64px 12px;max-width:560px;margin-right:0;margin-left:auto;z-index:2147483647;max-height:min(70vh,640px);overflow:auto;padding:14px;border-radius:16px;background:rgba(7,16,24,.96);color:#e7f2f6;border:1px solid rgba(94,234,212,.25);box-shadow:0 16px 48px rgba(0,0,0,.45);font:13px/1.55 Vazirmatn,Tahoma,sans-serif';
+			panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px"><strong style="font-size:15px">مدیریت کاربران</strong><button type="button" id="edt-um-close" style="border:0;background:transparent;color:#8aa3b0;cursor:pointer;font:inherit">بستن</button></div><p style="color:#8aa3b0;margin:0 0 10px">هر کاربر یک UUID و لینک اشتراک جدا دارد. کاربر غیرفعال نمی‌تواند وصل شود.</p><div id="edt-um-list" style="display:grid;gap:8px"></div><div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:grid;gap:8px"><input id="edt-um-name" placeholder="نام کاربر (مثلاً علی)" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(120,190,210,.25);background:rgba(0,0,0,.35);color:inherit;font:inherit"/><input id="edt-um-note" placeholder="یادداشت (اختیاری)" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(120,190,210,.25);background:rgba(0,0,0,.35);color:inherit;font:inherit"/><button type="button" id="edt-um-add" style="border:0;border-radius:999px;padding:9px 14px;font:600 13px inherit;cursor:pointer;background:#5eead4;color:#04201a">افزودن کاربر جدید</button><div id="edt-um-msg" style="color:#fbbf24;min-height:1.2em"></div></div>';
+			document.body.appendChild(btn);
+			document.body.appendChild(panel);
+			btn.addEventListener('click', function () { panel.hidden = !panel.hidden; if (!panel.hidden) loadUsers(); });
+			document.getElementById('edt-um-close').addEventListener('click', function () { panel.hidden = true; });
+			document.getElementById('edt-um-add').addEventListener('click', createUser);
+
+			function msg(t, ok) {
+				var el = document.getElementById('edt-um-msg');
+				if (!el) return;
+				el.style.color = ok ? '#4ade80' : '#fbbf24';
+				el.textContent = t || '';
+			}
+			function card(u) {
+				var div = document.createElement('div');
+				div.style.cssText = 'padding:10px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06)';
+				var badge = u.primary ? '<span style="color:#5eead4">اصلی</span>' : (u.enabled ? '<span style="color:#4ade80">فعال</span>' : '<span style="color:#fb7185">غیرفعال</span>');
+				div.innerHTML = '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong></strong><span>' + badge + '</span></div><div style="direction:ltr;text-align:left;font:12px/1.4 ui-monospace,monospace;margin:6px 0;word-break:break-all" class="uuid"></div><div style="direction:ltr;text-align:left;font:11px/1.4 ui-monospace,monospace;opacity:.85;word-break:break-all" class="sub"></div><div class="actions" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>';
+				div.querySelector('strong').textContent = u.name || 'user';
+				div.querySelector('.uuid').textContent = u.uuid;
+				div.querySelector('.sub').textContent = u.sub || '';
+				var actions = div.querySelector('.actions');
+				function b(label, fn, ghost) {
+					var x = document.createElement('button');
+					x.type = 'button';
+					x.textContent = label;
+					x.style.cssText = ghost
+						? 'border:1px solid rgba(120,190,210,.3);background:transparent;color:#e7f2f6;border-radius:999px;padding:5px 10px;cursor:pointer;font:inherit'
+						: 'border:0;background:rgba(94,234,212,.18);color:#5eead4;border-radius:999px;padding:5px 10px;cursor:pointer;font:inherit';
+					x.addEventListener('click', fn);
+					actions.appendChild(x);
+				}
+				b('کپی اشتراک', function () { navigator.clipboard.writeText(u.sub || '').then(function () { msg('لینک اشتراک کپی شد', true); }, function () { msg('کپی ناموفق'); }); }, true);
+				b('کپی UUID', function () { navigator.clipboard.writeText(u.uuid).then(function () { msg('UUID کپی شد', true); }); }, true);
+				if (!u.primary) {
+					b(u.enabled ? 'غیرفعال' : 'فعال‌سازی', function () {
+						api({ action: 'update', uuid: u.uuid, enabled: !u.enabled }).then(loadUsers);
+					}, true);
+					b('حذف', function () {
+						if (!confirm('کاربر «' + (u.name || '') + '» حذف شود؟')) return;
+						api({ action: 'delete', uuid: u.uuid }).then(loadUsers);
+					}, true);
+				}
+				return div;
+			}
+			function api(body) {
+				return fetch('/admin/users.json', {
+					method: body ? 'POST' : 'GET',
+					headers: body ? { 'content-type': 'application/json' } : undefined,
+					body: body ? JSON.stringify(body) : undefined,
+					credentials: 'same-origin'
+				}).then(function (r) { return r.json(); });
+			}
+			function loadUsers() {
+				var list = document.getElementById('edt-um-list');
+				list.textContent = 'در حال بارگذاری…';
+				api(null).then(function (data) {
+					list.innerHTML = '';
+					if (!data || !data.ok) { list.textContent = (data && data.error) || 'خطا'; return; }
+					(data.users || []).forEach(function (u) { list.appendChild(card(u)); });
+				}).catch(function (e) { list.textContent = String(e.message || e); });
+			}
+			function createUser() {
+				var name = (document.getElementById('edt-um-name').value || '').trim() || 'user';
+				var note = (document.getElementById('edt-um-note').value || '').trim();
+				msg('در حال ایجاد…');
+				api({ action: 'create', name: name, note: note }).then(function (data) {
+					if (!data || !data.ok) { msg((data && data.error) || 'خطا'); return; }
+					document.getElementById('edt-um-name').value = '';
+					document.getElementById('edt-um-note').value = '';
+					msg('کاربر ساخته شد', true);
+					loadUsers();
+				}).catch(function (e) { msg(String(e.message || e)); });
+			}
+		} catch (e) { }
+	}
+
+	function ready() { walk(document.documentElement); scrubBlockedLinks(document); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); }
+
+
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();`;
 function 本地化页面响应(响应) {
@@ -995,7 +1139,8 @@ export default {
 		预加载竞速拨号 = ['1', 'true'].includes(env.PRELOAD_RACE_DIAL) || 预加载竞速拨号;
 		反代并发拨号数 = Math.max(1, Number(env.PROXY_CONCURRENT_DIAL) || 反代并发拨号数);
 		TCP并发拨号数 = Math.max(1, Number(env.TCP_CONCURRENT_DIAL) || TCP并发拨号数);
-		if (!env.TCP_CONCURRENT_DIAL && TCP并发拨号数 !== 1 && 识别运营商(request) === 'cmcc') TCP并发拨号数 = 1;
+		// Iran build: skip China-Mobile-specific single-path dial reduction
+		// if (!env.TCP_CONCURRENT_DIAL && TCP并发拨号数 !== 1 && 识别运营商(request) === 'cmcc') TCP并发拨号数 = 1;
 		let 默认反代IP = (`${request.cf.colo}.${特征码字典[0]}.${特征码字典[1]}SsSs.nEt`).toLowerCase(), 默认反代兜底 = true;
 		if (env.PROXYIP) {
 			const proxyIPs = await 整理成数组(env.PROXYIP);
@@ -1003,6 +1148,7 @@ export default {
 			默认反代兜底 = false;
 		};
 		const 访问IP = request.headers.get('CF-Connecting-IP') || request.headers.get('True-Client-IP') || request.headers.get('X-Real-IP') || request.headers.get('X-Forwarded-For') || request.headers.get('Fly-Client-IP') || request.headers.get('X-Appengine-Remote-Addr') || request.headers.get('X-Cluster-Client-IP') || '未知IP';
+		允许的用户凭证 = await 加载允许的用户凭证(env, userID);
 		const [本机标识头, 本机标识键] = 获取本机标识(userID);
 		if (缓存SOCKS5白名单 === null) {
 			if (env.GO2SOCKS5) SOCKS5白名单 = [...new Set(SOCKS5白名单.concat(await 整理成数组(env.GO2SOCKS5)))];
@@ -1064,7 +1210,9 @@ export default {
 					const authCookie = cookies.split(';').find(c => c.trim().startsWith('auth='))?.split('=')[1];
 					// 没有cookie或cookie错误，跳转到/login页面
 					if (!authCookie || authCookie !== await MD5MD5(UA + 加密秘钥 + 管理员密码)) return new Response('重定向中...', { status: 302, headers: { 'Location': '/login' } });
-					if (访问路径 === 'admin/log.json') {// 读取日志内容
+					if (访问路径 === 'admin/users.json' || 区分大小写访问路径 === 'admin/users.json') {
+						return await 处理用户管理API(request, env, host, userID);
+					} else if (访问路径 === 'admin/log.json') {// 读取日志内容
 						const 读取日志内容 = await env.KV.get('log.json') || '[]';
 						return new Response(读取日志内容, { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
 					} else if (区分大小写访问路径 === 'admin/getCloudflareUsage') {// 查询请求量
@@ -1257,9 +1405,11 @@ export default {
 					响应.headers.set('Set-Cookie', 'auth=; Path=/; Max-Age=0; HttpOnly');
 					return 响应;
 				} else if (访问路径 === 'sub') {//处理订阅请求
-					const 订阅TOKEN = await MD5MD5(host + userID), 作为优选订阅生成器 = ['1', 'true'].includes(env.BEST_SUB) && url.searchParams.get('host') === 'example.com' && url.searchParams.get('uuid') === '00000000-0000-4000-8000-000000000000' && UA.toLowerCase().includes('tunnel (https://github.com/' + 特征码字典[1] + '/edge');
 					const 请求TOKEN = url.searchParams.get('token');
-					const 用户客户端请求订阅 = 请求TOKEN === 订阅TOKEN;
+					const 匹配用户UUID = await 根据TOKEN查找用户UUID(env, host, 请求TOKEN, userID);
+					const 用户客户端请求订阅 = !!匹配用户UUID;
+					const 订阅用户UUID = 匹配用户UUID || userID;
+					const 订阅TOKEN = await MD5MD5(host + 订阅用户UUID), 作为优选订阅生成器 = ['1', 'true'].includes(env.BEST_SUB) && url.searchParams.get('host') === 'example.com' && url.searchParams.get('uuid') === '00000000-0000-4000-8000-000000000000' && UA.toLowerCase().includes('tunnel (https://github.com/' + 特征码字典[1] + '/edge');
 					const 当前日序号 = Math.floor(Date.now() / 86400000);
 					const 订阅转换后端TOKEN种子 = base64SecretEncode(订阅TOKEN, userID);
 					const [今日订阅转换后端专属TOKEN, 昨日订阅转换后端专属TOKEN] = await Promise.all([
@@ -1268,7 +1418,7 @@ export default {
 					]);
 					const 订阅转换后端请求订阅 = 请求TOKEN === 今日订阅转换后端专属TOKEN || 请求TOKEN === 昨日订阅转换后端专属TOKEN;
 					if (用户客户端请求订阅 || 订阅转换后端请求订阅 || 作为优选订阅生成器) {
-						config_JSON = await 读取config_JSON(env, host, userID, UA);
+						config_JSON = await 读取config_JSON(env, host, 订阅用户UUID, UA);
 						if (作为优选订阅生成器) ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_Best_SUB', config_JSON, false));
 						else ctx.waitUntil(请求日志记录(env, request, 访问IP, 'Get_SUB', config_JSON));
 						const ua = UA.toLowerCase();
@@ -2813,13 +2963,24 @@ async function 转发木马UDP反代数据(chunk, webSocket, 上下文, request)
 
 function 解析木马请求(buffer, passwordPlainText) {
 	const data = 数据转Uint8Array(buffer);
-	const sha224Password = sha224(passwordPlainText);
+	const passwords = Array.isArray(passwordPlainText)
+		? passwordPlainText
+		: (允许的用户凭证 && 允许的用户凭证.uuids && 允许的用户凭证.uuids.length
+			? 允许的用户凭证.uuids
+			: [passwordPlainText]);
 	if (data.byteLength < 58) return { hasError: true, message: "invalid data" };
 	let crLfIndex = 56;
 	if (data[crLfIndex] !== 0x0d || data[crLfIndex + 1] !== 0x0a) return { hasError: true, message: "invalid header format" };
-	for (let i = 0; i < crLfIndex; i++) {
-		if (data[i] !== sha224Password.charCodeAt(i)) return { hasError: true, message: "invalid password" };
+	let passwordOk = false;
+	for (const pwd of passwords) {
+		const sha224Password = sha224(pwd);
+		let match = true;
+		for (let i = 0; i < crLfIndex; i++) {
+			if (data[i] !== sha224Password.charCodeAt(i)) { match = false; break; }
+		}
+		if (match) { passwordOk = true; break; }
 	}
+	if (!passwordOk) return { hasError: true, message: "invalid password" };
 
 	const socks5Index = crLfIndex + 2;
 	if (data.byteLength < socks5Index + 6) return { hasError: true, message: "invalid S5 request data" };
@@ -2909,12 +3070,22 @@ function 获取UUID字节(uuid) {
 }
 
 function UUID字节匹配(data, offset, uuid) {
-	const expected = 获取UUID字节(uuid);
-	if (!expected || data.byteLength < offset + 16) return false;
-	for (let i = 0; i < 16; i++) {
-		if (data[offset + i] !== expected[i]) return false;
+	const candidates = Array.isArray(uuid)
+		? uuid
+		: (允许的用户凭证 && 允许的用户凭证.uuids && 允许的用户凭证.uuids.length
+			? 允许的用户凭证.uuids
+			: [uuid]);
+	if (data.byteLength < offset + 16) return false;
+	for (const u of candidates) {
+		const expected = 获取UUID字节(u);
+		if (!expected) continue;
+		let ok = true;
+		for (let i = 0; i < 16; i++) {
+			if (data[offset + i] !== expected[i]) { ok = false; break; }
+		}
+		if (ok) return true;
 	}
-	return true;
+	return false;
 }
 
 function 解析魏烈思请求(chunk, token) {
@@ -6550,6 +6721,168 @@ async function DoH查询(域名, 记录类型, DoH解析服务 = "https://cloudf
 	}
 }
 
+
+/////////////////////////////////////////////////////// مدیریت کاربران (ایران) ///////////////////////////////////////////////
+const 用户列KEY = 'users.json';
+const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+async function 读取用户列表(env) {
+	try {
+		if (!env?.KV?.get) return [];
+		const raw = await env.KV.get(用户列KEY);
+		if (!raw) return [];
+		const data = JSON.parse(raw);
+		const list = Array.isArray(data) ? data : (Array.isArray(data.users) ? data.users : []);
+		return list.filter(u => u && typeof u.uuid === 'string').map(u => ({
+			uuid: String(u.uuid).toLowerCase(),
+			name: String(u.name || u.uuid).slice(0, 64),
+			enabled: u.enabled !== false,
+			note: String(u.note || '').slice(0, 200),
+			createdAt: u.createdAt || null,
+			updatedAt: u.updatedAt || null,
+		}));
+	} catch (e) {
+		console.error('读取用户列表', e);
+		return [];
+	}
+}
+
+async function 保存用户列表(env, users) {
+	const clean = (users || []).map(u => ({
+		uuid: String(u.uuid).toLowerCase(),
+		name: String(u.name || '').slice(0, 64),
+		enabled: u.enabled !== false,
+		note: String(u.note || '').slice(0, 200),
+		createdAt: u.createdAt || new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	}));
+	await env.KV.put(用户列KEY, JSON.stringify({ users: clean }, null, 2));
+	return clean;
+}
+
+function 生成随机UUIDv4() {
+	const b = new Uint8Array(16);
+	crypto.getRandomValues(b);
+	b[6] = (b[6] & 0x0f) | 0x40;
+	b[8] = (b[8] & 0x3f) | 0x80;
+	const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+	return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+async function 加载允许的用户凭证(env, primaryUUID) {
+	const users = await 读取用户列表(env);
+	const uuids = [String(primaryUUID).toLowerCase()];
+	const meta = { [String(primaryUUID).toLowerCase()]: { name: 'admin', primary: true } };
+	for (const u of users) {
+		if (!u.enabled) continue;
+		if (!uuidV4Regex.test(u.uuid)) continue;
+		if (!uuids.includes(u.uuid)) uuids.push(u.uuid);
+		meta[u.uuid] = { name: u.name, primary: false, note: u.note };
+	}
+	return { uuids, meta, users };
+}
+
+async function 根据TOKEN查找用户UUID(env, host, token, primaryUUID) {
+	if (!token) return null;
+	const primaryToken = await MD5MD5(host + primaryUUID);
+	if (token === primaryToken) return primaryUUID;
+	const users = await 读取用户列表(env);
+	for (const u of users) {
+		if (!u.enabled) continue;
+		const t = await MD5MD5(host + u.uuid);
+		if (t === token) return u.uuid;
+	}
+	return null;
+}
+
+async function 处理用户管理API(request, env, host, primaryUUID) {
+	const method = request.method.toUpperCase();
+	if (method === 'GET') {
+		const users = await 读取用户列表(env);
+		const out = [];
+		const adminToken = await MD5MD5(host + primaryUUID);
+		out.push({
+			uuid: primaryUUID,
+			name: 'admin',
+			enabled: true,
+			primary: true,
+			note: 'کاربر اصلی (از ADMIN/UUID)',
+			token: adminToken,
+			sub: `${host.startsWith('http') ? '' : 'https://'}${host}/sub?token=${adminToken}`,
+		});
+		for (const u of users) {
+			const token = await MD5MD5(host + u.uuid);
+			out.push({
+				...u,
+				primary: false,
+				token,
+				sub: `https://${host}/sub?token=${token}`,
+			});
+		}
+		return new Response(JSON.stringify({ ok: true, users: out }, null, 2), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json;charset=utf-8' },
+		});
+	}
+
+	if (method !== 'POST') {
+		return new Response(JSON.stringify({ ok: false, error: 'method' }), { status: 405, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+	}
+
+	let body;
+	try { body = await request.json(); } catch {
+		return new Response(JSON.stringify({ ok: false, error: 'json' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+	}
+	const action = String(body.action || '').toLowerCase();
+	let users = await 读取用户列表(env);
+
+	if (action === 'create') {
+		let uuid = String(body.uuid || '').toLowerCase().trim();
+		if (!uuid) uuid = 生成随机UUIDv4();
+		if (!uuidV4Regex.test(uuid)) {
+			return new Response(JSON.stringify({ ok: false, error: 'uuid نامعتبر (باید UUIDv4 باشد)' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+		}
+		if (uuid === String(primaryUUID).toLowerCase() || users.some(u => u.uuid === uuid)) {
+			return new Response(JSON.stringify({ ok: false, error: 'این UUID تکراری است' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+		}
+		if (users.length >= 50) {
+			return new Response(JSON.stringify({ ok: false, error: 'حداکثر ۵۰ کاربر' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+		}
+		users.push({
+			uuid,
+			name: String(body.name || 'user').slice(0, 64),
+			enabled: body.enabled !== false,
+			note: String(body.note || '').slice(0, 200),
+			createdAt: new Date().toISOString(),
+		});
+		users = await 保存用户列表(env, users);
+		return new Response(JSON.stringify({ ok: true, users }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+	}
+
+	if (action === 'update') {
+		const uuid = String(body.uuid || '').toLowerCase();
+		const idx = users.findIndex(u => u.uuid === uuid);
+		if (idx < 0) {
+			return new Response(JSON.stringify({ ok: false, error: 'کاربر پیدا نشد' }), { status: 404, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+		}
+		if (body.name != null) users[idx].name = String(body.name).slice(0, 64);
+		if (body.note != null) users[idx].note = String(body.note).slice(0, 200);
+		if (body.enabled != null) users[idx].enabled = !!body.enabled;
+		users = await 保存用户列表(env, users);
+		return new Response(JSON.stringify({ ok: true, users }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+	}
+
+	if (action === 'delete') {
+		const uuid = String(body.uuid || '').toLowerCase();
+		users = users.filter(u => u.uuid !== uuid);
+		users = await 保存用户列表(env, users);
+		return new Response(JSON.stringify({ ok: true, users }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+	}
+
+	return new Response(JSON.stringify({ ok: false, error: 'action نامعتبر' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+}
+
+
 async function 读取config_JSON(env, hostname, userID, UA = "Mozilla/5.0", 重置配置 = false) {
 	const _p = 特征码字典[0];
 	const host = hostname, Ali_DoH = "https://dns.alidns.com/dns-query", ECH_SNI = "cloudflare-ech.com", 占位符 = '{{IP:PORT}}', 初始化开始时间 = performance.now(), 默认配置JSON = {
@@ -6835,13 +7168,13 @@ async function 生成随机IP(request, count = 16, 指定端口 = -1) {
 	const 查询参数运营商 = String(url.searchParams.get('cnIspCode') || '').toLowerCase();
 	const 运营商文件标识 = ['ct', 'cu', 'cmcc', 'cf'].includes(查询参数运营商) ? 查询参数运营商 : 识别运营商(request);
 	const 运营商名称映射 = {
-		cmcc: 'CF-Mobile-',
-		cu: 'CF-Unicom-',
-		ct: 'CF-Telecom-',
-		cf: 'CF-Official-',
+		cmcc: 'CF-Edge-',
+		cu: 'CF-Edge-',
+		ct: 'CF-Edge-',
+		cf: 'CF-Edge-',
 	};
 	const cidr_url = 运营商文件标识 === 'cf' ? `https://raw.githubusercontent.com/${特征码字典[1]}/${特征码字典[1]}/main/CF-CIDR.txt` : `https://raw.githubusercontent.com/${特征码字典[1]}/${特征码字典[1]}/main/CF-CIDR/${运营商文件标识}.txt`;
-	const cfname = 运营商名称映射[运营商文件标识] || 'CF-Official-';
+	const cfname = 运营商名称映射[运营商文件标识] || 'CF-Edge-';
 	const cfport = [443, 2053, 2083, 2087, 2096, 8443];
 	let cidrList = [];
 	try { const res = await fetch(cidr_url); cidrList = res.ok ? await 整理成数组(await res.text()) : ['104.16.0.0/13'] } catch { cidrList = ['104.16.0.0/13'] }
