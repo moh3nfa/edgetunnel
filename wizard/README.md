@@ -1,32 +1,25 @@
-# edgetunnel Install Wizard
+# edgetunnel Install Wizard (Pages)
 
-One-page Persian install wizard that deploys **edgetunnel** onto a Cloudflare Worker via the Cloudflare API.
+One-page Persian install wizard. It deploys **edgetunnel onto Cloudflare Pages** (not Workers) via the Cloudflare API.
 
 ## What it does
 
 1. Reads your Cloudflare API token  
-2. Resolves the account (or uses the Account ID you enter)  
-3. Creates or reuses a KV namespace and binds it as `KV`  
-4. Downloads `_worker.js` from GitHub and uploads it as a Worker  
-5. Sets the `ADMIN` secret and enables `*.workers.dev`
+2. Resolves the account  
+3. Creates or reuses a KV namespace and binds it as `KV` on Pages  
+4. Creates or updates a Pages project with `ADMIN` (and optional `KEY`)  
+5. Uploads `_worker.js` as a Pages Functions worker bundle  
+6. Returns `https://<project>.pages.dev` and `/admin`
 
-## Live URL
+## Live URLs
 
-`https://edge-install.mfb77952.workers.dev/`
+- Wizard UI: https://edge-setup.pages.dev/  
+- Example Pages install: https://edge-fa.pages.dev/login  
 
-## Local / re-deploy
+## Token permissions
 
-```bash
-# requires CLOUDFLARE_API_TOKEN with Workers + KV edit
-npx wrangler deploy -c wizard/wrangler.toml
-```
-
-Or upload `wizard/worker.js` with the Workers Script Upload API (module format, `main_module: worker.js`).
-
-## Token permissions needed
-
-- Account → Workers Scripts → Edit  
+- Account → Cloudflare Pages → Edit  
 - Account → Workers KV Storage → Edit  
 - Account → Account Settings → Read  
 
-Do not commit API tokens. Rotate any token that was pasted into chat or shared.
+Do not commit API tokens. Rotate any token pasted into chat.
