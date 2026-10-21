@@ -121,7 +121,7 @@ async function handleInstall(request, env) {
 		log('script', 'progress', 'در حال دریافت _worker.js …');
 		const script = await fetchEdgeScript(env);
 		if (!script || script.length < 1000) {
-			throw new Error('دانلود اسکریپت edgetunnel ناموفق بود.');
+			throw new Error('دانلود اسکریپت پنل ناموفق بود.');
 		}
 		log('script', 'ok', `اسکریپت آماده (${Math.round(script.length / 1024)} KB)`);
 
@@ -318,7 +318,7 @@ const WIZARD_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>edgetunnel — ویزارد نصب (Pages)</title>
+<title>Edge FA — ویزارد نصب (Pages)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
@@ -509,9 +509,9 @@ input:focus {
 
 <main class="wrap">
   <section class="hero" id="hero">
-    <div class="brand">edgetunnel</div>
+    <div class="brand">Edge FA</div>
     <h1>نصب روی Cloudflare Pages در چند قدم</h1>
-    <p class="lead">ویزارد یک‌مسیره برای ایران: از همین فورک (فارسی، یوزرمنیجر، WARP، ECH) روی <b dir="ltr">Pages</b> نصب می‌کند — نه نسخهٔ خام چینی.</p>
+    <p class="lead">ویزارد یک‌مسیره برای ایران: پنل فارسی با یوزرمنیجر، WARP و ECH را روی <b dir="ltr">Pages</b> نصب می‌کند.</p>
     <div class="cta-row">
       <button type="button" class="btn btn-primary" id="startBtn">شروع نصب</button>
       <a class="btn btn-ghost" href="https://panel-log.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
@@ -583,7 +583,7 @@ input:focus {
     </div>
   </section>
 
-  <p class="footer">ویزارد نصب edgetunnel · هدف دیپلوی: Cloudflare Pages</p>
+  <p class="footer">ویزارد نصب Edge FA · هدف دیپلوی: Cloudflare Pages</p>
 </main>
 
 <script>

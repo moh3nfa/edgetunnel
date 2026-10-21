@@ -69,12 +69,14 @@ const 面板本地化脚本 = String.raw`(function () {
 		['请输入您的管理员密码', 'رمز عبور مدیر را وارد کنید', 'Enter your admin password'],
 		['立即登录', 'ورود', 'Log in'],
 		['密码错误', 'رمز عبور اشتباه است', 'Wrong password'],
-		['强力驱动', 'نیرو می‌گیرد', ''],
-		['由', 'با', 'Powered by'],
+		['强力驱动', '', ''],
+		['由', '', ''],
 		['重定向中...', 'در حال انتقال...', 'Redirecting...'],
 
 		// ---------- بالای پنل ----------
-		['edgetunnel 设置页面', 'صفحه‌ی تنظیمات edgetunnel', 'edgetunnel Settings'],
+		['edgetunnel 设置页面', 'صفحه‌ی تنظیمات Edge FA', 'Edge FA Settings'],
+		['Edge FA 设置页面', 'صفحه‌ی تنظیمات Edge FA', 'Edge FA Settings'],
+		['设置页面', 'صفحه‌ی تنظیمات', 'Settings'],
 		['我是小白！我想简单点！', 'من مبتدی هستم! ساده‌تر می‌خواهم!', 'I am a beginner! Keep it simple!'],
 		['我是高手！我就要折腾！', 'من حرفه‌ای هستم! می‌خواهم همه‌چیز را تنظیم کنم!', 'I am an expert! Let me tinker!'],
 		['重置配置失败，失败原因：', 'بازنشانی تنظیمات ناموفق بود. دلیل: ', 'Config reset failed. Reason: '],
@@ -255,7 +257,8 @@ const 面板本地化脚本 = String.raw`(function () {
 		['项目获取 UsageAPI 地址', 'می‌توانید آدرس UsageAPI را بگیرید', 'project to get a UsageAPI address'],
 
 		// ---------- درباره / نسخه ----------
-		['关于 edgetunnel', 'درباره‌ی edgetunnel', 'About edgetunnel'],
+		['关于 edgetunnel', 'درباره', 'About'],
+		['关于 Edge FA', 'درباره', 'About'],
 		['最新版本', 'آخرین نسخه', 'Latest version'],
 		['当前版本', 'نسخه‌ی فعلی', 'Current version'],
 		['需要更新', 'نیاز به به‌روزرسانی', 'update needed'],
@@ -630,7 +633,55 @@ const 面板本地化脚本 = String.raw`(function () {
 		['代理', ' پروکسی ', ' proxy '],
 		['配置', ' تنظیمات ', ' config '],
 		['优选', ' برگزیده ', ' preferred '],
-		['密码', 'رمز عبور', 'password']
+		['密码', 'رمز عبور', 'password'],
+
+		// ---------- توست‌ها و پیام‌های پویا ----------
+		['🎉 24小时内不会再提示', 'تا ۲۴ ساعت دیگر نمایش داده نمی‌شود', 'Won\'t show again for 24 hours'],
+		['24小时内不会再提示', 'تا ۲۴ ساعت دیگر نمایش داده نمی‌شود', 'Won\'t show again for 24 hours'],
+		['加载失败', 'بارگذاری ناموفق', 'Load failed'],
+		['加载配置失败:', 'بارگذاری تنظیمات ناموفق:', 'Failed to load config:'],
+		['加载日志失败:', 'بارگذاری گزارش ناموفق:', 'Failed to load logs:'],
+		['重置失败:', 'بازنشانی ناموفق:', 'Reset failed:'],
+		['清除配置失败:', 'پاک‌کردن تنظیمات ناموفق:', 'Failed to clear config:'],
+		['配置已重置为默认值', 'تنظیمات به پیش‌فرض بازنشانی شد', 'Config reset to defaults'],
+		['配置已保存', 'تنظیمات ذخیره شد', 'Config saved'],
+		['配置不完整', 'تنظیمات ناقص است', 'Config incomplete'],
+		['保存配置失败:', 'ذخیره تنظیمات ناموفق:', 'Failed to save config:'],
+		['保存配置失败: ', 'ذخیره تنظیمات ناموفق: ', 'Failed to save config: '],
+		['正在加载更新日志...', 'در حال بارگذاری تغییرات نسخه...', 'Loading changelog...'],
+		['更新日志加载失败:', 'بارگذاری تغییرات نسخه ناموفق:', 'Failed to load changelog:'],
+		['暂无更新日志内容。', 'محتوای تغییرات نسخه موجود نیست.', 'No changelog content.'],
+		['更新日志拉取失败，请稍后重试。', 'دریافت تغییرات نسخه ناموفق بود؛ بعداً دوباره تلاش کنید.', 'Failed to fetch changelog. Try again later.'],
+		['高级设置', 'تنظیمات پیشرفته', 'Advanced settings'],
+		['在线优选', 'انتخاب آنلاین', 'Online selection'],
+		['本地优选', 'انتخاب محلی', 'Local selection'],
+		['优选结果', 'نتایج برگزیده', 'Selection results'],
+		['优选类型', 'نوع انتخاب', 'Selection type'],
+		['优选端口', 'پورت برگزیده', 'Preferred port'],
+		['优选延迟', 'تأخیر برگزیده', 'Preferred latency'],
+		['没有可保存的优选结果', 'نتیجه‌ی برگزیده‌ای برای ذخیره نیست', 'No selection results to save'],
+		['请先勾选需要保存的优选结果', 'ابتدا نتایجی را که می‌خواهید ذخیره شوند علامت بزنید', 'Select the results you want to save first'],
+		['随机优选数量不能为空', 'تعداد انتخاب تصادفی نباید خالی باشد', 'Random pick count cannot be empty'],
+		['自定义优选地址不能为空', 'آدرس برگزیده‌ی سفارشی نباید خالی باشد', 'Custom preferred address cannot be empty'],
+		['优选订阅生成器地址不能为空', 'آدرس مولد اشتراک برگزیده نباید خالی باشد', 'Preferred-subscription generator address cannot be empty'],
+		['输入订阅转换后端地址', 'آدرس بک‌اند تبدیل اشتراک را وارد کنید', 'Enter converter backend address'],
+		['Telegram 配置已清除', 'تنظیمات اعلان پاک شد', 'Alert config cleared'],
+		['✅ 启用状态已保存', 'وضعیت فعال‌سازی ذخیره شد', 'Enabled state saved'],
+		['配置路径模板', 'قالب مسیر پیکربندی', 'Config path template'],
+		['保存路径模板失败:', 'ذخیره قالب مسیر ناموفق:', 'Failed to save path template:'],
+		['每行输入一个域名', 'در هر خط یک دامنه وارد کنید', 'Enter one domain per line'],
+		['请至少输入一个域名', 'حداقل یک دامنه وارد کنید', 'Enter at least one domain'],
+		['域名列表已更新，请保存配置', 'فهرست دامنه به‌روز شد؛ تنظیمات را ذخیره کنید', 'Domain list updated; please save config'],
+		['当前网页域名', 'دامنه‌ی فعلی صفحه', 'Current page domain'],
+		['查看订阅鉴权 TOKEN 说明', 'راهنمای توکن احراز اشتراک', 'Subscription auth TOKEN help'],
+		['自定义ECH 解析域名', 'دامنه‌ی سفارشی حل ECH', 'Custom ECH resolve domain'],
+		['正在加载公开代理...', 'در حال بارگذاری پروکسی عمومی...', 'Loading public proxies...'],
+		['😕 暂无可用的本地优选工具', 'ابزار انتخاب محلی در دسترس نیست', 'No local selection tools available'],
+		['暂无可复制的最新 Worker.js 源码', 'کد Worker.js جدیدی برای کپی نیست', 'No Worker.js source available to copy'],
+		['已复制最新 Worker.js 源码到剪贴板', 'آخرین کد Worker.js در کلیپ‌بورد کپی شد', 'Latest Worker.js copied to clipboard'],
+		['查询请求量失败，失败原因：', 'خواندن مصرف درخواست ناموفق. دلیل: ', 'Failed to query usage. Reason: '],
+		['北京时间', 'وقت تهران', 'Tehran time'],
+		['北京时间 (UTC+8)', 'وقت تهران (UTC+3:30)', 'Tehran time (UTC+3:30)']
 	];
 
 	var PUNCT_FA = { '，': '، ', '、': '، ', '。': '. ', '：': ': ', '；': '؛ ', '（': ' (', '）': ') ', '！': '!', '？': '؟', '「': '«', '」': '»', '\u201c': '«', '\u201d': '»', '～': '~' };
@@ -679,17 +730,17 @@ const 面板本地化脚本 = String.raw`(function () {
 		return out;
 	}
 
-	// تک‌حرف‌ها (مثل «由») فقط وقتی کل متن باشند ترجمه می‌شوند
+	// تک‌حرف‌ها (مثل «由») فقط وقتی کل متن باشند ترجمه می‌شوند؛ برند edgetunnel هم پاک می‌شود
 	var _tr = tr;
 	tr = function (s, tag) {
 		if (typeof s === 'string' && lang !== 'zh') {
 			var t = s.trim();
 			if (t.length === 1 && has.call(EXACT, t)) {
 				var v = EXACT[t][lang === 'fa' ? 1 : 2];
-				return s.replace(t, v);
+				return scrubBrandText(s.replace(t, v));
 			}
 		}
-		return _tr(s, tag);
+		return scrubBrandText(_tr(s, tag));
 	};
 
 	// ---------- لایه‌ی شفاف: ظاهر صفحه ترجمه می‌شود، ولی اسکریپت خود صفحه همیشه متن اصلی (چینی) را «می‌خواند» ----------
@@ -775,9 +826,9 @@ const 面板本地化脚本 = String.raw`(function () {
 		if (p.closest && p.closest(SKIP)) return;
 		var cur = rawText(n), src;
 		if (origT.has(n) && appliedT.get(n) === cur) src = origT.get(n);
-		else if (CJK.test(cur)) { src = cur; origT.set(n, cur); }
+		else if (CJK.test(cur) || /edgetunnel|cmliu/i.test(cur)) { src = cur; origT.set(n, cur); }
 		else { origT.delete(n); appliedT.delete(n); return; }
-		var t = tr(src, p.nodeName);
+		var t = scrubBrandText(tr(src, p.nodeName));
 		appliedT.set(n, t);
 		if (t !== cur) RAW.nvGet.set.call(n, t);
 	}
@@ -899,54 +950,80 @@ const 面板本地化脚本 = String.raw`(function () {
 		}
 	} catch (e) { }
 
-	// ---------- دکمه‌ی آدرس شخصی «تغییردهنده» کنار آیکن GitHub / Telegram در فوتر پنل ----------
-	var MY_ADDRESS = 'https://github.com/moh3nfa/edgetunnel';
-	var ADDR_ID = 'edt-modder-link', addrTimer = 0;
-	var ADDR_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3z"/></svg>';
+	// ---------- پاک‌سازی برند / لینک‌های فیلتر / پاپ‌آپ‌های اضافه ----------
+	var BRAND = 'Edge FA';
+	var MY_ADDRESS = location.origin;
+	var BLOCKED_HREF = /(t\.me\/|telegram\.(me|org|dog)|tx\.me\/)/i;
+	var BRAND_RE = /edgetunnel/gi;
+	var CMLIU_RE = /\bcmliu\b/gi;
 
-	function findFooterTemplate() {
-		var a = document.querySelector('a[href*="github.com"]');
-		if (a && a.getClientRects().length) return a;
-		var w = document.createTreeWalker(document.body, 4, null), n;
-		while ((n = w.nextNode())) {
-			if (!/^\s*v\d+\.\d+/.test(rawText(n))) continue;
-			var el = n.parentElement && n.parentElement.closest('a,button,div,span');
-			if (el && el.getClientRects().length && el.parentElement && el.parentElement.children.length > 2) {
-				var row = el.parentElement;
-				return row.children[0];
-			}
-		}
-		return null;
+	function scrubBrandText(s) {
+		// Fresh regex each time — shared /g lastIndex breaks intermittent replaces
+		return String(s || '').replace(/edgetunnel/gi, BRAND).replace(/\bcmliu\b/gi, BRAND);
 	}
 
-	function mountAddress() {
-		addrTimer = 0;
+	function scrubBlockedLinks(root) {
 		try {
-			if (!document.body || location.pathname.indexOf('admin') < 0) return;
-			var old = document.getElementById(ADDR_ID);
-			if (old && old.isConnected) return;
-			var tpl = findFooterTemplate();
-			if (!tpl || !tpl.parentNode) return;
-			var n = tpl.cloneNode(true);
-			n.id = ADDR_ID;
-			n.removeAttribute('onclick');
-			n.innerHTML = ADDR_ICON;
-			n.setAttribute('title', 'GitHub — edgetunnel ایران');
-			n.setAttribute('aria-label', 'GitHub edgetunnel');
-			if (n.tagName === 'A') {
-				n.href = MY_ADDRESS;
-				n.target = '_blank';
-				n.rel = 'noopener noreferrer';
-			} else {
-				n.addEventListener('click', function () { window.open(MY_ADDRESS, '_blank', 'noopener'); });
+			var scope = root && root.querySelectorAll ? root : document;
+			var nodes = scope.querySelectorAll ? scope.querySelectorAll('a[href]') : [];
+			for (var i = 0; i < nodes.length; i++) {
+				var a = nodes[i];
+				var href = a.getAttribute('href') || '';
+				if (BLOCKED_HREF.test(href) || /github\.com\/cmliu\/edgetunnel/i.test(href) || /github\.com\/[^/]*edgetunnel/i.test(href)) {
+					a.removeAttribute('href');
+					a.setAttribute('role', 'presentation');
+					a.style.display = 'none';
+					a.setAttribute('data-edt-scrubbed', '1');
+					continue;
+				}
+				if (BRAND_RE.test(a.textContent || '')) a.textContent = scrubBrandText(a.textContent);
 			}
-			tpl.parentNode.insertBefore(n, tpl.nextSibling);
+			var tips = scope.querySelectorAll ? scope.querySelectorAll('#edt-iran-tip, #ir-modal, #hostsMismatchModal, .hosts-mismatch-modal') : [];
+			for (var t = 0; t < tips.length; t++) tips[t].remove();
 		} catch (e) { }
 	}
 
-	function scheduleAddress() { if (!addrTimer) addrTimer = setTimeout(mountAddress, 400); }
+	function killExtraPopups() {
+		try {
+			var ids = ['ir-modal', 'edt-iran-tip', 'hostsMismatchModal', 'versionInfoModal'];
+			for (var i = 0; i < ids.length; i++) {
+				var el = document.getElementById(ids[i]);
+				if (el) el.remove();
+			}
+			document.querySelectorAll('.modal-overlay').forEach(function (m) {
+				var txt = m.textContent || '';
+				if (/BPB|bia-pain|edgetunnel|域名配置提示|hostsMismatch|24小时|GitHub Star|强力驱动/i.test(txt) || m.id === 'ir-modal') {
+					m.remove();
+					return;
+				}
+				// hosts mismatch: auto-dismiss silently
+				if (/伪装域名|当前访问管理面板|未配置为节点/i.test(txt)) {
+					try { localStorage.setItem('hostsMismatchNotificationTime', String(Date.now())); } catch (e) { }
+					m.remove();
+				}
+			});
+			document.querySelectorAll('a[href*="edgetunnel"], a[href*="cmliu/edgetunnel"], a[href*="t.me/"]').forEach(function (a) {
+				a.style.display = 'none';
+				a.removeAttribute('href');
+			});
+			// footer "powered by …"
+			document.querySelectorAll('footer, .footer, [class*="footer"]').forEach(function (f) {
+				if (/edgetunnel|强力驱动|cmliu/i.test(f.textContent || '')) {
+					f.querySelectorAll('a').forEach(function (a) { a.remove(); });
+					f.childNodes.forEach(function (n) {
+						if (n.nodeType === 3 && /edgetunnel|强力驱动|由|cmliu/i.test(n.nodeValue || '')) n.nodeValue = '';
+					});
+				}
+			});
+			if (document.title && BRAND_RE.test(document.title)) document.title = scrubBrandText(document.title);
+		} catch (e) { }
+	}
 
-	window.__edtTr = function (x, l) { lang = l; return tr(x, ''); };
+	// Run ASAP before remote IR redirect popup paints
+	killExtraPopups();
+	scrubBlockedLinks(document);
+
+	window.__edtTr = function (x, l) { lang = l; return scrubBrandText(tr(x, '')); };
 	applyDirection();
 	injectCss();
 
@@ -957,58 +1034,9 @@ const 面板本地化脚本 = String.raw`(function () {
 			else if (m.type === 'attributes') procAttrs(m.target);
 			else for (var j = 0; j < m.addedNodes.length; j++) { walk(m.addedNodes[j]); scrubBlockedLinks(m.addedNodes[j]); }
 		}
-		scheduleAddress();
+		killExtraPopups();
 	});
 	mo.observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS.concat(['value']) });
-
-
-	// ---------- ایران: حذف لینک‌های تلگرام (فیلتر) و بنر راهنما ----------
-	var BLOCKED_HREF = /(t\.me\/|telegram\.(me|org|dog)|tx\.me\/)/i;
-	function scrubBlockedLinks(root) {
-		try {
-			var scope = root && root.querySelectorAll ? root : document;
-			var nodes = scope.querySelectorAll ? scope.querySelectorAll('a[href]') : [];
-			for (var i = 0; i < nodes.length; i++) {
-				var a = nodes[i];
-				var href = a.getAttribute('href') || '';
-				if (!BLOCKED_HREF.test(href)) continue;
-				a.setAttribute('href', MY_ADDRESS);
-				a.setAttribute('title', 'تلگرام در ایران فیلتر است — لینک جایگزین');
-				a.setAttribute('data-edt-scrubbed', 'telegram');
-				if (!a.textContent || /telegram|t\.me/i.test(a.textContent)) {
-					a.textContent = 'GitHub';
-				}
-			}
-			// SVG/icon-only telegram buttons often wrap an <a>
-			var svgs = scope.querySelectorAll ? scope.querySelectorAll('[class*="telegram" i], [id*="telegram" i], [aria-label*="telegram" i]') : [];
-			for (var j = 0; j < svgs.length; j++) {
-				var el = svgs[j];
-				var link = el.closest && el.closest('a');
-				if (link && BLOCKED_HREF.test(link.getAttribute('href') || '')) {
-					link.setAttribute('href', MY_ADDRESS);
-					link.setAttribute('data-edt-scrubbed', 'telegram');
-				}
-			}
-		} catch (e) { }
-	}
-
-	function mountIranTip() {
-		try {
-			if (document.getElementById('edt-iran-tip') || !document.body) return;
-			var tip = document.createElement('div');
-			tip.id = 'edt-iran-tip';
-			tip.setAttribute('dir', 'rtl');
-			tip.style.cssText = 'position:fixed;top:12px;right:12px;left:12px;z-index:2147483645;max-width:420px;margin-right:auto;padding:10px 14px;border-radius:12px;background:rgba(8,40,36,.92);color:#e7f2f6;font:13px/1.55 Vazirmatn,Tahoma,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.35);border:1px solid rgba(94,234,212,.25)';
-			tip.innerHTML = '<div style="font-weight:700;margin-bottom:4px">نسخهٔ فارسی — مناسب ایران</div><div style="opacity:.9">لینک‌های تلگرام به‌خاطر فیلترینگ داخل ایران حذف/جایگزین شده‌اند. پشتیبانی و مستندات از طریق GitHub در دسترس است.</div><button type="button" id="edt-iran-tip-x" style="margin-top:8px;border:0;background:rgba(94,234,212,.2);color:#5eead4;padding:4px 10px;border-radius:999px;cursor:pointer;font:inherit">متوجه شدم</button>';
-			document.body.appendChild(tip);
-			var x = document.getElementById('edt-iran-tip-x');
-			if (x) x.addEventListener('click', function () {
-				try { localStorage.setItem('edt_iran_tip_dismissed', '1'); } catch (e) { }
-				tip.remove();
-			});
-			try { if (localStorage.getItem('edt_iran_tip_dismissed') === '1') tip.remove(); } catch (e) { }
-		} catch (e) { }
-	}
 
 
 	// ---------- یوزر منیجر (فقط /admin) ----------
@@ -1201,17 +1229,28 @@ const 面板本地化脚本 = String.raw`(function () {
 		} catch (e) { }
 	}
 
-	function ready() { walk(document.documentElement); scrubBlockedLinks(document); iranizeNetworkTests(); mountSwitch(); mountAddress(); mountIranTip(); mountUserManager(); mountWarpToggle(); }
-
-
-
+	function ready() {
+		killExtraPopups();
+		walk(document.documentElement);
+		scrubBlockedLinks(document);
+		iranizeNetworkTests();
+		mountSwitch();
+		mountUserManager();
+		mountWarpToggle();
+		killExtraPopups();
+	}
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();`;
 function 本地化页面响应(响应) {
 	try {
 		if (!((响应.headers.get('content-type') || '').toLowerCase().includes('text/html'))) return 响应;
-		return new HTMLRewriter().on('html', { element(元素) { 元素.prepend('<script>' + 面板本地化脚本 + '</script>', { html: true }); } }).transform(响应);
+		return new HTMLRewriter()
+			.on('html', { element(元素) { 元素.prepend('<script>' + 面板本地化脚本 + '</script>', { html: true }); } })
+			.on('#ir-modal', { element(元素) { 元素.remove(); } })
+			.on('a[href*="edgetunnel"]', { element(元素) { 元素.remove(); } })
+			.on('a[href*="t.me/"]', { element(元素) { 元素.remove(); } })
+			.transform(响应);
 	} catch (e) { return 响应; }
 }
 
