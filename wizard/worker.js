@@ -607,16 +607,18 @@ input:focus {
     wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  startBtn.addEventListener('click', () => show(0));
+  // Backslashes doubled: this script lives inside a template literal (WIZARD_HTML).
   function sanitizeTokenClient(raw) {
     let t = String(raw || '');
     t = t.replace(/^\uFEFF/, '').replace(/[\u200B-\u200D\u2060\uFEFF\u200E\u200F]/g, '');
     t = t.replace(/[\u00A0\u202F\u2007]/g, ' ').trim();
-    t = t.replace(/^["'\`]+|["'\`]+$/g, '').trim();
-    t = t.replace(/^Bearer\s+/i, '').trim();
-    t = t.replace(/^["'\`]+|["'\`]+$/g, '').trim();
-    return t.replace(/[\r\n\t ]+/g, '');
+    t = t.replace(/^["']+|["']+$/g, '').trim();
+    t = t.replace(/^Bearer\\s+/i, '').trim();
+    t = t.replace(/^["']+|["']+$/g, '').trim();
+    return t.replace(/[\\r\\n\\t ]+/g, '');
   }
+
+  startBtn.addEventListener('click', () => show(0));
 
   document.querySelectorAll('[data-next]').forEach((btn) => {
     btn.addEventListener('click', () => {
