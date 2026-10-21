@@ -4,6 +4,8 @@
  */
 
 const SCRIPT_SOURCES = [
+	// نسخهٔ فارسی/ایران این فورک (برنچ فعلی) — اولویت اول برای نصب
+	'https://raw.githubusercontent.com/moh3nfa/edgetunnel/cursor/edge-install-wizard-3c6b/_worker.js',
 	'https://raw.githubusercontent.com/moh3nfa/edgetunnel/main/_worker.js',
 	'https://raw.githubusercontent.com/cmliu/edgetunnel/main/_worker.js',
 ];
@@ -449,7 +451,7 @@ input:focus {
   <section class="hero" id="hero">
     <div class="brand">edgetunnel</div>
     <h1>نصب روی Cloudflare Pages در چند قدم</h1>
-    <p class="lead">ویزارد یک‌مسیره برای کاربران ایران: توکن API، رمز ادمین، دیپلوی روی <b dir="ltr">Pages</b>. پنل فارسی است؛ لینک تلگرام به‌خاطر فیلترینگ استفاده نمی‌شود.</p>
+    <p class="lead">ویزارد یک‌مسیره برای ایران: از همین فورک (فارسی، یوزرمنیجر، WARP، ECH) روی <b dir="ltr">Pages</b> نصب می‌کند — نه نسخهٔ خام چینی.</p>
     <div class="cta-row">
       <button type="button" class="btn btn-primary" id="startBtn">شروع نصب</button>
       <a class="btn btn-ghost" href="https://panel-log.pages.dev/login" target="_blank" rel="noopener">نمونهٔ زنده</a>
